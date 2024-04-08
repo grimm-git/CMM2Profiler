@@ -1,0 +1,199 @@
+/*
+ *
+ */
+.root {
+    -fx-negative-color: #dd3300;
+    -fx-positive-color: #53912a;
+}
+
+.box-recessed {
+    -fx-border-color: derive(-fx-base, -20%)  derive(-fx-base, +5) derive(-fx-base, +5) derive(-fx-base, -20%), derive(-fx-base, -60%)  derive(-fx-base, +10) derive(-fx-base, +10) derive(-fx-base, -60%);
+    -fx-border-insets: 0 0 0 0, 1 1 1 1;
+    -fx-border-width: 1 1 1 1, 1 1 1 1;
+}
+
+.alarm-text {
+    -fx-text-fill: #aa0000;
+    -fx-font-size:1.2em;
+    -fx-effect: dropshadow( gaussian, rgba(255,255,255,0.9), 5, 0.8, 0, 0);
+}
+
+/* For table columns */
+.column-align-left,
+.column-align-left .label {
+    -fx-alignment: CENTER_LEFT;
+}
+.column-align-center,
+.column-align-center .label {
+    -fx-alignment: CENTER;
+}
+.column-align-right,
+.column-align-right .label {
+    -fx-alignment: CENTER_RIGHT;
+}
+
+.html-field-list-cell:focused:selected {
+    -fx-background-color: -fx-control-inner-background;
+}
+/* the same for the odd rows */
+.html-field-list-cell:odd:focused:selected {
+    -fx-background-color: -fx-control-inner-background;
+}
+.html-field-list-cell {
+    -fx-padding: 0.3em 0.3em 0.0em 0.3em;
+    -fx-background-color: -fx-control-inner-background;
+}
+
+.headline {
+    -fx-text-fill: #ffffff;
+    -fx-font-weight: bold;
+    -fx-font-size:1.3em;
+/*    -fx-effect: dropshadow( gaussian, rgba(48,205,48,0.8), 5, 0.3, 0, 0);*/
+    -fx-effect: dropshadow( gaussian, rgba(0,0,0,0.9), 5, 0.4, 0, 0);
+}
+
+.combo-status .arrow-button
+{
+    -fx-background-color: null;
+    -fx-background-insets: 0;
+    -fx-background-radius: 0;
+    -fx-padding: 0.0em 0em 0.0em 0.0em;
+}
+
+.combo-status .arrow-button .arrow
+{
+    -fx-background-color: -fx-mark-highlight-color, -fx-mark-color;
+    -fx-background-insets: 0 0 0 0, 0;
+    -fx-padding: 0em 0em 0em 0em;
+    -fx-shape: null;
+}
+
+.tab-pane *.tab-header-background {
+    -fx-background-color: -fx-background;
+    -fx-border-color: -fx-background -fx-background derive(-fx-base, -20%) -fx-background;
+}
+
+.scroll-pane > .viewport {
+   -fx-background-color: white;
+}
+
+.tooltip {
+-fx-text-fill: #333333;
+-fx-background-color:
+    linear-gradient(#cec340, #a59c31),
+    linear-gradient(#fefefc, #e6dd71),
+    linear-gradient(#fef592, #e5d848);
+-fx-background-insets: 0,1,2;
+-fx-background-radius: 5 5 5 5;
+-fx-padding: 0.333333em 0.666667em 0.333333em 0.666667em; /* 4 8 4 8 */
+-fx-effect: dropshadow( three-pass-box , rgba(0,0,0,0.6) , 8, 0.0 , 0 , 0 );
+}
+
+.split-pane {
+    -fx-border-color: -fx-background;
+}
+
+.chart-series-line {    
+    -fx-stroke-width: 2px;
+    -fx-effect: dropshadow( gaussian, rgba(0,0,0,0.8), 8, 0.0, 2, 2);
+}
+.chart-body {
+    -fx-create-symbols: false;
+}
+.chart-content .chart-plot-background,
+.chart-body .chart-plot-background {
+    -fx-background-color: white;
+}
+.chart-with-symbols {
+    -fx-create-symbols: true !important;
+}
+.series0.chart-bar { -fx-bar-fill: #3A5199 !important; }  /* cobalt */
+.series1.chart-bar { -fx-bar-fill: #8D230F !important; }  /* crimson */
+.series2.chart-bar { -fx-bar-fill: #92AAC7 !important; }  /* Bluebell */
+.series3.chart-bar { -fx-bar-fill: #1E434C !important; }  /* forrest */
+.series4.chart-bar { -fx-bar-fill: #ab69cd !important; }  /* violett */
+.series5.chart-bar { -fx-bar-fill: #9B4F0F !important; }  /* Rust */
+.series6.chart-bar { -fx-bar-fill: #002C54 !important; }  /* Dusk */
+.series7.chart-bar { -fx-bar-fill: #C99E10 !important; }  /* Gold */
+                                     
+#linechart-capacity .chart-plot-background {
+    -fx-background-color: transparent;
+}
+#linechart-capacity .chart-horizontal-grid-lines,
+#linechart-capacity .chart-vertical-grid-lines {
+    -fx-stroke: transparent;
+}
+
+#category-highlighted {
+    -fx-fill: #0096c9;
+}
+#category-selected {
+    -fx-fill: #0096c9;
+}
+
+.chart-range-pane {
+    -fx-horizontal-range-control: bottom;
+    -fx-fit-to-width: false;
+}
+
+
+.chart-range-pane .scroll-bar {
+    -fx-background-color: null;
+}
+
+.chart-range-pane .scroll-bar:horizontal.limit .track {
+    -fx-background-image: url('hbar.png'); 
+    -fx-background-repeat: repeat-x;
+    -fx-background-position: center;  
+}
+.chart-range-pane .scroll-bar:horizontal.limit .thumb {
+    -fx-background-image: url('hhandle.png'); 
+    -fx-background-repeat: no-repeat;
+    -fx-background-position: center;  
+    -fx-background-color: null;
+}
+
+.chart-range-pane .scroll-bar:vertical.limit {
+    -fx-background-color: null;
+}
+
+.chart-range-pane .scroll-bar:vertical.limit .track {
+    -fx-background-image: url('vbar.png'); 
+    -fx-background-repeat: repeat-y;
+    -fx-background-position: center;  
+}
+.chart-range-pane .scroll-bar:vertical.limit .thumb {
+    -fx-background-image: url('vhandle.png'); 
+    -fx-background-repeat: no-repeat;
+    -fx-background-position: center;  
+    -fx-background-color: null;
+}
+
+
+.tick-label {
+    -fx-text-alignment:center !important;
+}
+
+/*
+ ****************** Common Generic styles ******************************
+ */
+.stdtext {
+    -fx-fill: -fx-text-background-color;
+}
+.stdtext:focused:selected {
+    -fx-fill: white;
+}
+.stdtext-mark {
+    -fx-fill: #dd2222;
+    -fx-underline: true;
+    -fx-font-weight: bold;
+}
+.stdtext-flow {
+    -fx-padding: 0.166667em 0 0.166667em 0;
+}
+.stdtext-headline {
+    -fx-font-weight: bold;
+    -fx-font-size:1.1em;
+    -fx-padding: 0px 0px 0px 4px;  
+}
+
