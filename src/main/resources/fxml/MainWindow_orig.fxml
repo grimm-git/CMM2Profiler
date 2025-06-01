@@ -7,10 +7,6 @@
 <?import javafx.scene.control.MenuBar?>
 <?import javafx.scene.control.MenuItem?>
 <?import javafx.scene.control.Separator?>
-<?import javafx.scene.control.Tab?>
-<?import javafx.scene.control.TabPane?>
-<?import javafx.scene.control.TableColumn?>
-<?import javafx.scene.control.TableView?>
 <?import javafx.scene.control.TreeTableColumn?>
 <?import javafx.scene.control.TreeTableView?>
 <?import javafx.scene.image.Image?>
@@ -19,7 +15,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<VBox xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1">
+<VBox xmlns="http://javafx.com/javafx/null" xmlns:fx="http://javafx.com/fxml/1">
    <children>
       <MenuBar>
         <menus>
@@ -85,46 +81,21 @@
             <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
          </VBox.margin>
       </HBox>
-      <TabPane tabClosingPolicy="UNAVAILABLE">
-        <tabs>
-          <Tab text="Profiler">
-               <content>
-                  <HBox fx:id="hboxContents" spacing="10.0">
-                     <padding>
-                        <Insets left="5.0" right="5.0" />
-                     </padding>
-                     <children>
-                        <TreeTableView fx:id="tableFunctions" prefWidth="600.0" HBox.hgrow="ALWAYS">
-                          <columns>
-                            <TreeTableColumn fx:id="colName" editable="false" prefWidth="200.0" text="Function/Sub" />
-                              <TreeTableColumn fx:id="colCallsCnt" editable="false" prefWidth="100.0" text="Calls" />
-                              <TreeTableColumn fx:id="colExecTime" editable="false" prefWidth="100.0" text="Time [ms]" />
-                            <TreeTableColumn fx:id="colCallsTime" prefWidth="150.0" text="Calls x Time [ms]" />
-                          </columns>
-                        </TreeTableView>
-                     </children>
-                  </HBox>
-               </content>
-          </Tab>
-          <Tab text="Source">
-               <content>
-                  <HBox prefHeight="100.0" prefWidth="200.0" spacing="10.0">
-                     <children>
-                        <TableView fx:id="tableSource" prefWidth="600.0">
-                          <columns>
-                            <TableColumn fx:id="colLine" editable="false" maxWidth="100.0" minWidth="20.0" prefWidth="50.0" text="Line" />
-                            <TableColumn fx:id="colCode" editable="false" minWidth="300.0" prefWidth="500.0" text="Code" />
-                          </columns>
-                        </TableView>
-                     </children>
-                     <padding>
-                        <Insets left="5.0" right="5.0" />
-                     </padding>
-                  </HBox>
-               </content>
-          </Tab>
-        </tabs>
-      </TabPane>
+      <HBox fx:id="hboxContents" spacing="10.0" VBox.vgrow="ALWAYS">
+         <padding>
+            <Insets left="5.0" right="5.0" />
+         </padding>
+         <children>
+            <TreeTableView fx:id="tableFunctions" prefWidth="600.0" HBox.hgrow="ALWAYS">
+              <columns>
+                <TreeTableColumn fx:id="colName" editable="false" prefWidth="200.0" text="Function/Sub" />
+                  <TreeTableColumn fx:id="colCallsCnt" editable="false" prefWidth="100.0" text="Calls" />
+                  <TreeTableColumn fx:id="colExecTime" editable="false" prefWidth="100.0" text="Time [ms]" />
+                <TreeTableColumn fx:id="colCallsTime" prefWidth="150.0" text="Calls x Time [ms]" />
+              </columns>
+            </TreeTableView>
+         </children>
+      </HBox>
       <Separator prefWidth="200.0">
          <VBox.margin>
             <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
