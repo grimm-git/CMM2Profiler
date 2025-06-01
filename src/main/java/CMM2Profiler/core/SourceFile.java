@@ -53,10 +53,10 @@ public class SourceFile
         reader = new BufferedReader(new InputStreamReader(iStream));
           
         lineno=0;
-        line = reader.readLine().trim();
+        line = reader.readLine();
         while (line != null) {
             lineno++;
-            if (!line.isBlank()) SourceMap.put(lineno, line);
+            if (!line.isBlank()) SourceMap.put(lineno, line.trim());
             line = reader.readLine();
         }
         reader.close();
@@ -72,9 +72,9 @@ public class SourceFile
         return false;
     }
     
-    public ArrayList<String> getSource()
+    public HashMap<Integer,String> getSourceMap()
     {
-        return new ArrayList<String>(SourceMap.values());
+        return SourceMap;
     }
     
     public String getSourceLine(int no)

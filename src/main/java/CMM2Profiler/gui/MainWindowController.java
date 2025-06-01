@@ -27,6 +27,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.Map;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.value.ObservableValue;
@@ -36,9 +37,12 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.ScrollBar;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
 import javafx.scene.control.TreeTableCell;
 import javafx.scene.control.TreeTableColumn;
 import javafx.scene.control.TreeTableView;
+import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.control.cell.TreeItemPropertyValueFactory;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -69,7 +73,12 @@ extends WindowFX
     @FXML  private TreeTableColumn<ProfilerData, Float> colExecTime;
     @FXML  private TreeTableColumn<ProfilerData, Float> colCallsTime;
     
+    @FXML  private TableView<DMSourceLine> tableSource;
+    @FXML  private TableColumn<DMSourceLine, Integer> colLine;
+    @FXML  private TableColumn<DMSourceLine, String> colCode;
+
     private final DoubleProperty tableFunctionsBarWidthProperty = new SimpleDoubleProperty();
+    private final DoubleProperty tableSourceBarWidthProperty = new SimpleDoubleProperty();
     private final MainWindowData dataModel;
 
     public MainWindowController(Stage stage) throws IOException
@@ -117,12 +126,34 @@ extends WindowFX
                                        .subtract(colExecTime.widthProperty())
                                        .subtract(tableFunctionsBarWidthProperty)
                                        .subtract(2));
-      stage.setOnShown(ev -> {
-            ScrollBar bar = getVerticalScrollbar(tableFunctions);
+        
+        colLine.setCellValueFactory(new PropertyValueFactory<>("lineno"));
+        colLine.getStyleClass().add("column-align-left");
+        colLine.setReorderable(false);
+        
+        colCode.setCellValueFactory(new PropertyValueFactory<>("codeline"));
+        colCode.getStyleClass().add("column-align-left");
+        colCode.setReorderable(false);
+        colCode.prefWidthProperty().bind(tableSource.widthProperty()
+                                       .subtract(colLine.widthProperty())
+                                       .subtract(tableSourceBarWidthProperty)
+                                       .subtract(2));
+
+        tableSource.setItems(dataModel.getSourceList());
+        
+        stage.setOnShown(ev -> {
+            final ScrollBar bar = getVerticalScrollbar(tableFunctions);
             if (bar != null) {
                 tableFunctionsBarWidthProperty.set(bar.visibleProperty().get() ? bar.getWidth() : 0);
                 bar.visibleProperty().addListener((obs, oldVal, newVal) -> {  
                     tableFunctionsBarWidthProperty.set(newVal ? bar.getWidth() : 0);
+                });
+            }
+            final ScrollBar bar2 = getVerticalScrollbar(tableSource);
+            if (bar2 != null) {
+                tableSourceBarWidthProperty.set(bar2.visibleProperty().get() ? bar2.getWidth() : 0);
+                bar2.visibleProperty().addListener((obs, oldVal, newVal) -> {  
+                    tableSourceBarWidthProperty.set(newVal ? bar2.getWidth() : 0);
                 });
             }
         });
@@ -203,21 +234,19 @@ extends WindowFX
         
         try {
             dataModel.mainSource.load(filePath, fileName);
-        
-            ArrayList<String> list=dataModel.mainSource.getSource();
-            for (int n=0; n<list.size(); n++) {
-                temp = list.get(n);
-                if (temp.length() < 12) continue;
-                temp = temp.substring(0, 8).toLowerCase();
+            
+            for(String codeLine : dataModel.mainSource.getSourceMap().values()) {
+                if (codeLine.length() < 12) continue;
+                temp = codeLine.substring(0, 8).toLowerCase();
                 if (temp.equals("#include")) {
-                    int a = list.get(n).indexOf('"')+1;
-                    int b = list.get(n).indexOf('"', a);
+                    int a = codeLine.indexOf('"')+1;
+                    int b = codeLine.indexOf('"', a);
                     SourceFile include=new SourceFile();
-                    include.load(filePath, list.get(n).substring(a,b));
+                    include.load(filePath, codeLine.substring(a,b));
                     dataModel.includes.add(include);
                 }
             }
-            
+        
         } catch (IOException ex) {
             showError(ex.getLocalizedMessage());
         }
@@ -264,6 +293,7 @@ extends WindowFX
             dataModel.setProgramName(fileName+".bas");
            
             loadSourceFiles(filePath, fileName+".bas");
+            dataModel.updateSourceList(dataModel.mainSource);
             
             loadProfilerLog(filePath, fileName+".csv");
             dataModel.updateFunctionTree();

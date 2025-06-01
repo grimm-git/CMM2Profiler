@@ -36,6 +36,8 @@ public class MainWindowData
     private final StringProperty nameProgram = new SimpleStringProperty();
     private final ObservableList<String> listCodelines = FXCollections.observableArrayList();
     private final ObservableList<ProfilerData> functionList = FXCollections.observableArrayList();
+    private final ObservableList<DMSourceLine> sourceList = FXCollections.observableArrayList();
+
     private final StringProperty errorMsg = new SimpleStringProperty();
     private final StringProperty successMsg = new SimpleStringProperty();
     private TreeItem<ProfilerData> treeRoot=null;
@@ -45,7 +47,8 @@ public class MainWindowData
     
     SourceFile mainSource = new SourceFile();
     ArrayList<SourceFile> includes = new ArrayList<>();
-    
+
+
     public MainWindowData()
     {
     }
@@ -66,7 +69,7 @@ public class MainWindowData
         listCodelines.add(item.getCodeline());
     }
      
-    public ObservableList<String> getSourceList()
+    public ObservableList<String> getCodeLinesList()
     {
         return listCodelines;
     }
@@ -80,7 +83,12 @@ public class MainWindowData
     {
         return treeRoot;
     }
-    
+
+    public ObservableList<DMSourceLine> getSourceList()
+    {
+        return sourceList;
+    }
+ 
     public void addNode(ProfilerData parent, ProfilerData data)
     {
         if (parent == null) {
@@ -120,6 +128,20 @@ public class MainWindowData
             }        
         }
         treeRoot=root;
+    }
+
+    public void updateSourceList(SourceFile source)
+    {
+        DMSourceLine DM;
+        sourceList.clear();
+       
+        for (int n=1; n<=source.getLastLineNo(); n++) {
+            if (source.getSourceLine(n) == null)
+                DM = new DMSourceLine(n,"");
+            else
+                DM = new DMSourceLine(n,source.getSourceLine(n));
+            sourceList.add(DM);
+        }   
     }
     
     // -------------------------------------------------------------------------------- 
