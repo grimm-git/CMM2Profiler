@@ -18,6 +18,7 @@ package CMM2Profiler.gui;
 
 import CMM2Profiler.core.Node;
 import CMM2Profiler.core.ProfilerData;
+import CMM2Profiler.core.SourceFile;
 import java.util.ArrayList;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
@@ -41,6 +42,9 @@ public class MainWindowData
             
     ArrayList<ProfilerData> dataProfiler = new ArrayList<>();
     Node<ProfilerData> functionTree=null;
+    
+    SourceFile mainSource = new SourceFile();
+    ArrayList<SourceFile> includes = new ArrayList<>();
     
     public MainWindowData()
     {
@@ -100,6 +104,8 @@ public class MainWindowData
     
     public void updateFunctionTree()
     {
+        if (functionTree==null) return;
+        
         TreeItem<ProfilerData> root = new TreeItem<>(functionTree.getData());
         
         // all all Functions/Subs

@@ -19,12 +19,14 @@ package CMM2Profiler.gui;
 
 import CMM2Profiler.Defaults;
 import CMM2Profiler.core.ProfilerData;
+import CMM2Profiler.core.SourceFile;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.value.ObservableValue;
@@ -34,12 +36,9 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.ScrollBar;
-import javafx.scene.control.TableCell;
-import javafx.scene.control.TableColumn;
 import javafx.scene.control.TreeTableCell;
 import javafx.scene.control.TreeTableColumn;
 import javafx.scene.control.TreeTableView;
-import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.control.cell.TreeItemPropertyValueFactory;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -129,7 +128,7 @@ extends WindowFX
         });
     }
     
-    private void loadProfilerLog()
+    private void loadProfilerLog(String filePath, String fileName)
     {
         BufferedReader reader;
         ProfilerData rootFunction;
@@ -137,19 +136,18 @@ extends WindowFX
         ProfilerData curFunction;
         boolean catchNext=false;
 
-        File fh=loadDialog("Open Profiler File...");
-
         try {
+            File fh=new File(filePath, fileName);
             InputStream iStream = new FileInputStream(fh);
             reader = new BufferedReader(new InputStreamReader(iStream));
             
             // Read header and verify file format
             String line = reader.readLine();
+            if (line.charAt(0)=='/') line=line.substring(1);
             String[] parts = line.split("/");
             if (parts.length != 3) throw new IOException("Bad file format");
             if (!parts[2].endsWith(".bas")) throw new IOException("Bad file format");
 
-            dataModel.setProgramName(parts[1]);
             rootFunction = new ProfilerData();
             rootFunction.setCodeLine(parts[1]);
             rootFunction.setSourceFile(parts[2]);
@@ -199,6 +197,32 @@ extends WindowFX
         }
     }
     
+    private void loadSourceFiles(String filePath, String fileName)
+    {
+        String temp;
+        
+        try {
+            dataModel.mainSource.load(filePath, fileName);
+        
+            ArrayList<String> list=dataModel.mainSource.getSource();
+            for (int n=0; n<list.size(); n++) {
+                temp = list.get(n);
+                if (temp.length() < 12) continue;
+                temp = temp.substring(0, 8).toLowerCase();
+                if (temp.equals("#include")) {
+                    int a = list.get(n).indexOf('"')+1;
+                    int b = list.get(n).indexOf('"', a);
+                    SourceFile include=new SourceFile();
+                    include.load(filePath, list.get(n).substring(a,b));
+                    dataModel.includes.add(include);
+                }
+            }
+            
+        } catch (IOException ex) {
+            showError(ex.getLocalizedMessage());
+        }
+    }
+    
     // ---------------------------------------------------------------------------------------- 
     //                                      FXML GUI handler
     // ---------------------------------------------------------------------------------------- 
@@ -231,7 +255,17 @@ extends WindowFX
     {
         // File Menu
         if (event.getSource() == miOpen) {
-            loadProfilerLog();
+            File fh=loadDialog("Open Source/Profiler File...");
+            String fileName = fh.getName();
+            String filePath = fh.getParent();
+             
+            int pos=fileName.lastIndexOf('.');
+            if (pos != -1) fileName=fileName.substring(0,pos);
+            dataModel.setProgramName(fileName+".bas");
+           
+            loadSourceFiles(filePath, fileName+".bas");
+            
+            loadProfilerLog(filePath, fileName+".csv");
             dataModel.updateFunctionTree();
             tableFunctions.setRoot(dataModel.getFunctionTree());
             
@@ -250,7 +284,8 @@ extends WindowFX
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle(title);
         fileChooser.getExtensionFilters().addAll(
-            new FileChooser.ExtensionFilter("CSV Files", "*.csv"));
+            new FileChooser.ExtensionFilter("CSV Files", "*.csv"),
+            new FileChooser.ExtensionFilter("Basic Files", "*.bas"));
         
         File selectedFile = fileChooser.showOpenDialog(new Stage());
         return selectedFile;
