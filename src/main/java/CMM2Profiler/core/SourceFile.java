@@ -23,7 +23,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.HashMap;
 
 /**
  *
@@ -31,69 +30,46 @@ import java.util.HashMap;
  */
 public class SourceFile
 {
+    private String basePath;
     private String filePath;
-    private int lastLineNo;
-    private final HashMap<Integer,String> SourceMap = new HashMap<>();
+    private final ArrayList<SourceLineData> SourceLineList = new ArrayList<>();
     
     public SourceFile()
     {
+        basePath="";
         filePath="";
     }
     
-    public void load(String filePath, String fileName) throws IOException
+    public void load(String base, String path) throws IOException
     {
         BufferedReader reader;
         String line;
         int lineno;
 
-        File fh=new File(filePath, fileName);
+        File fh=new File(base, path);
         InputStream iStream = new FileInputStream(fh);
-        this.filePath=fileName;
+        basePath=base;
+        filePath=path;
             
         reader = new BufferedReader(new InputStreamReader(iStream));
           
-        lineno=0;
+        lineno=1;
         line = reader.readLine();
         while (line != null) {
-            lineno++;
-            if (!line.isBlank()) SourceMap.put(lineno, line.trim());
+            SourceLineList.add(new SourceLineData(line, lineno++,0,0));
             line = reader.readLine();
         }
         reader.close();
-        lastLineNo=lineno;
     }
-    
-    public boolean addLine(int no, String line)
-    {
-        if (this.SourceMap.containsKey(no) == false) {
-            this.SourceMap.put(no, line);
-            return true;
-        }
-        return false;
-    }
-    
-    public HashMap<Integer,String> getSourceMap()
-    {
-        return SourceMap;
-    }
+
+    public ArrayList<SourceLineData> getSourceList() { return SourceLineList; }
     
     public String getSourceLine(int no)
     {
-        return this.SourceMap.get(no);
+        return no<SourceLineList.size() ? SourceLineList.get(no).getCodeLine() : "";
     }
 
-    public String getFilePath()
-    {
-        return filePath;
-    }
-
-    public int getLastLineNo()
-    {
-        return lastLineNo;
-    }
-    
-    public String removeLine(int no)
-    {
-        return this.SourceMap.remove(no);
-    }   
+    public String getBasePath() { return basePath; }
+    public String getFilePath() { return filePath; }
+    public int getLastLineNo() { return SourceLineList.size()-1; }
 }

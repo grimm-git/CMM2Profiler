@@ -56,60 +56,22 @@ public class ProfilerData
         lineNo.set(convertInt(parts[parts.length-1]));
     }
     
-    public int getCallsCnt()
-    {
-        return callsCnt.get();
-    }
-    
-    public void setCallsCnt(int val)
-    {
-        callsCnt.set(val);
-    }
+    public int getCallsCnt() { return callsCnt.get(); }
+    public void setCallsCnt(int val) { callsCnt.set(val); }
 
-    public float getExecTime()
-    {
-        return execTime.get();
-    }
-    
-    public void setExecTime(float val)
-    {
-        execTime.set(val);
-    }
+    public float getExecTime() { return execTime.get(); }
+    public void setExecTime(float val) { execTime.set(val); }
 
-    public Float getCallsTime()
-    {
-        return execTime.get()*callsCnt.get();
-    }
-    
-    public String getCodeline()
-    {
-        return codeLine.get();
-    }
+    public Float getCallsTime() { return execTime.get()*callsCnt.get(); }
 
-    public void setCodeLine(String arg)
-    {
-        codeLine.set(arg);
-    }
+    public String getCodeline() { return codeLine.get(); }
+    public void setCodeLine(String arg) { codeLine.set(arg); }
 
-    public String getSourceFile()
-    {
-        return sourceFile.get();
-    }
+    public String getSourceFile() { return sourceFile.get(); }
+    public void setSourceFile(String arg) { sourceFile.set(arg); }
 
-    public void setSourceFile(String arg)
-    {
-        sourceFile.set(arg);
-    }
-
-    public int getLineNo()
-    {
-        return lineNo.get();
-    }
-
-    public void setLineNo(int val)
-    {
-        lineNo.set(val);
-    }
+    public int getLineNo() { return lineNo.get(); }
+    public void setLineNo(int val) { lineNo.set(val); }
 
     public boolean isFunction()
     {

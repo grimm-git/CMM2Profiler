@@ -19,13 +19,13 @@ package CMM2Profiler.gui;
 import CMM2Profiler.core.Node;
 import CMM2Profiler.core.ProfilerData;
 import CMM2Profiler.core.SourceFile;
+import CMM2Profiler.core.SourceLineData;
 import java.util.ArrayList;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.control.TreeItem;
-
 
 /**
  *
@@ -36,7 +36,9 @@ public class MainWindowData
     private final StringProperty nameProgram = new SimpleStringProperty();
     private final ObservableList<String> listCodelines = FXCollections.observableArrayList();
     private final ObservableList<ProfilerData> functionList = FXCollections.observableArrayList();
-    private final ObservableList<DMSourceLine> sourceList = FXCollections.observableArrayList();
+    private final ObservableList<SourceLineData> sourceList = FXCollections.observableArrayList();
+    private final ObservableList<String> listSFN =  FXCollections.observableArrayList();
+    private final StringProperty selectedSFN = new SimpleStringProperty();
 
     private final StringProperty errorMsg = new SimpleStringProperty();
     private final StringProperty successMsg = new SimpleStringProperty();
@@ -48,20 +50,13 @@ public class MainWindowData
     SourceFile mainSource = new SourceFile();
     ArrayList<SourceFile> includes = new ArrayList<>();
 
-
     public MainWindowData()
     {
+        selectedSFN.set("Source");
     }
     
-    public String getProgramName()
-    {
-        return nameProgram.get();
-    }
-    
-    public void setProgramName(String name)
-    {
-        nameProgram.set(name);
-    }
+    public String getProgramName() { return nameProgram.get(); }
+    public void setProgramName(String name) { nameProgram.set(name); }
 
     public void addProfilerData(ProfilerData item)
     {
@@ -69,26 +64,21 @@ public class MainWindowData
         listCodelines.add(item.getCodeline());
     }
      
-    public ObservableList<String> getCodeLinesList()
+    public ObservableList<String> getCodeLinesList() { return listCodelines; }
+    public ObservableList<ProfilerData> getFunctionList() { return functionList; }
+    public ObservableList<SourceLineData> getSourceList() { return sourceList; }
+    public ObservableList<String> getSFNList() { return listSFN; }
+    public TreeItem<ProfilerData> getFunctionTree() { return treeRoot; }
+
+    public void addSFNMain(String name)
     {
-        return listCodelines;
+        listSFN.clear();
+        listSFN.add(name);
+        selectedSFN.set(name);
     }
 
-    public ObservableList<ProfilerData> getFunctionList()
-    {
-        return functionList;
-    }
-
-    public TreeItem<ProfilerData> getFunctionTree()
-    {
-        return treeRoot;
-    }
-
-    public ObservableList<DMSourceLine> getSourceList()
-    {
-        return sourceList;
-    }
- 
+    public void addSFNInclude(String name) { listSFN.add(name); }
+    
     public void addNode(ProfilerData parent, ProfilerData data)
     {
         if (parent == null) {
@@ -132,16 +122,8 @@ public class MainWindowData
 
     public void updateSourceList(SourceFile source)
     {
-        DMSourceLine DM;
         sourceList.clear();
-       
-        for (int n=1; n<=source.getLastLineNo(); n++) {
-            if (source.getSourceLine(n) == null)
-                DM = new DMSourceLine(n,"");
-            else
-                DM = new DMSourceLine(n,source.getSourceLine(n));
-            sourceList.add(DM);
-        }   
+        sourceList.addAll(source.getSourceList());
     }
     
     // -------------------------------------------------------------------------------- 
@@ -150,4 +132,6 @@ public class MainWindowData
     public StringProperty nameProperty()        { return nameProgram; }
     public StringProperty errorMsgProperty()    { return errorMsg; }
     public StringProperty successMsgProperty()  { return successMsg; }
+    public StringProperty selectedSFNProperty()  { return selectedSFN; };
+
 }

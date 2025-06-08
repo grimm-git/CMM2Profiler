@@ -20,23 +20,25 @@ package CMM2Profiler.gui;
 import CMM2Profiler.Defaults;
 import CMM2Profiler.core.ProfilerData;
 import CMM2Profiler.core.SourceFile;
+import CMM2Profiler.core.SourceLineData;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.Map;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.ScrollBar;
+import javafx.scene.control.Tab;
+import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TreeTableCell;
@@ -73,10 +75,14 @@ extends WindowFX
     @FXML  private TreeTableColumn<ProfilerData, Float> colExecTime;
     @FXML  private TreeTableColumn<ProfilerData, Float> colCallsTime;
     
-    @FXML  private TableView<DMSourceLine> tableSource;
-    @FXML  private TableColumn<DMSourceLine, Integer> colLine;
-    @FXML  private TableColumn<DMSourceLine, String> colCode;
-
+    @FXML  private Tab tabSource;
+    @FXML  private TableView<SourceLineData> tableSource;
+    @FXML  private TableColumn<SourceLineData, Integer> colSourceLine;
+    @FXML  private TableColumn<SourceLineData, String> colSourceCode;
+    @FXML  private TableColumn<SourceLineData, Float> colSourceTime;
+    @FXML  private TableColumn<SourceLineData, Integer> colSourceCalls;
+    @FXML  private ComboBox<String> comboSource;
+    
     private final DoubleProperty tableFunctionsBarWidthProperty = new SimpleDoubleProperty();
     private final DoubleProperty tableSourceBarWidthProperty = new SimpleDoubleProperty();
     private final MainWindowData dataModel;
@@ -112,12 +118,12 @@ extends WindowFX
         colCallsCnt.setReorderable(false);
 
         colExecTime.setCellValueFactory(new TreeItemPropertyValueFactory<>("execTime"));
-        colExecTime.setCellFactory(cellFactoryFloat);
+        colExecTime.setCellFactory(treeFactoryFloat);
         colExecTime.getStyleClass().add("column-align-right");
         colExecTime.setReorderable(false);
         
         colCallsTime.setCellValueFactory(new TreeItemPropertyValueFactory<>("CallsTime"));
-        colCallsTime.setCellFactory(cellFactoryFloat);
+        colCallsTime.setCellFactory(treeFactoryFloat);
         colCallsTime.getStyleClass().add("column-align-right");
         colCallsTime.setReorderable(false);
         colCallsTime.prefWidthProperty().bind(tableFunctions.widthProperty()
@@ -127,19 +133,36 @@ extends WindowFX
                                        .subtract(tableFunctionsBarWidthProperty)
                                        .subtract(2));
         
-        colLine.setCellValueFactory(new PropertyValueFactory<>("lineno"));
-        colLine.getStyleClass().add("column-align-left");
-        colLine.setReorderable(false);
+        colSourceLine.setCellValueFactory(new PropertyValueFactory<>("slNo"));
+        colSourceLine.getStyleClass().add("column-align-left");
+        colSourceLine.setReorderable(false);
         
-        colCode.setCellValueFactory(new PropertyValueFactory<>("codeline"));
-        colCode.getStyleClass().add("column-align-left");
-        colCode.setReorderable(false);
-        colCode.prefWidthProperty().bind(tableSource.widthProperty()
-                                       .subtract(colLine.widthProperty())
+        colSourceCode.setCellValueFactory(new PropertyValueFactory<>("slCode"));
+        colSourceCode.getStyleClass().add("column-align-left");
+        colSourceCode.setReorderable(false);
+        colSourceCode.prefWidthProperty().bind(tableSource.widthProperty()
+                                       .subtract(colSourceLine.widthProperty())
+                                       .subtract(colSourceCalls.widthProperty())
+                                       .subtract(colSourceTime.widthProperty())
                                        .subtract(tableSourceBarWidthProperty)
                                        .subtract(2));
 
+        colSourceCalls.setCellValueFactory(new PropertyValueFactory<>("slCalls"));
+        colSourceCalls.setCellFactory(formatCellInt);
+        colSourceCalls.getStyleClass().add("column-align-right");
+        colSourceCalls.setReorderable(false);
+
+        colSourceTime.setCellValueFactory(new PropertyValueFactory<>("slTime"));
+        colSourceTime.setCellFactory(formatCellFloat);
+        colSourceTime.getStyleClass().add("column-align-right");
+        colSourceTime.setReorderable(false);
+
         tableSource.setItems(dataModel.getSourceList());
+
+        comboSource.setItems(dataModel.getSFNList());
+        comboSource.valueProperty().bindBidirectional(dataModel.selectedSFNProperty());
+        comboSource.valueProperty().addListener((obs, oldVal, newVal) -> { showSourceFile(newVal); });
+        tabSource.textProperty().bind(dataModel.selectedSFNProperty());
         
         stage.setOnShown(ev -> {
             final ScrollBar bar = getVerticalScrollbar(tableFunctions);
@@ -234,8 +257,10 @@ extends WindowFX
         
         try {
             dataModel.mainSource.load(filePath, fileName);
+            dataModel.addSFNMain(fileName);
             
-            for(String codeLine : dataModel.mainSource.getSourceMap().values()) {
+            for (int n=0 ; n < dataModel.mainSource.getLastLineNo() ; n++) {
+                String codeLine = dataModel.mainSource.getSourceLine(n);
                 if (codeLine.length() < 12) continue;
                 temp = codeLine.substring(0, 8).toLowerCase();
                 if (temp.equals("#include")) {
@@ -244,11 +269,25 @@ extends WindowFX
                     SourceFile include=new SourceFile();
                     include.load(filePath, codeLine.substring(a,b));
                     dataModel.includes.add(include);
+                    dataModel.addSFNInclude(codeLine.substring(a,b));
                 }
             }
-        
         } catch (IOException ex) {
             showError(ex.getLocalizedMessage());
+        }
+    }
+    
+    private void showSourceFile(String newVal)
+    {
+        if (newVal.equals(dataModel.mainSource.getFilePath()))
+            dataModel.updateSourceList(dataModel.mainSource);
+        else {
+            for (SourceFile sf : dataModel.includes) {
+                if (newVal.equals(sf.getFilePath())) {
+                    dataModel.updateSourceList(sf);
+                    break;
+                }
+            }
         }
     }
     
@@ -291,13 +330,12 @@ extends WindowFX
             int pos=fileName.lastIndexOf('.');
             if (pos != -1) fileName=fileName.substring(0,pos);
             dataModel.setProgramName(fileName+".bas");
-           
-            loadSourceFiles(filePath, fileName+".bas");
-            dataModel.updateSourceList(dataModel.mainSource);
             
             loadProfilerLog(filePath, fileName+".csv");
             dataModel.updateFunctionTree();
             tableFunctions.setRoot(dataModel.getFunctionTree());
+
+            loadSourceFiles(filePath, fileName+".bas");
             
         } else if (event.getSource() == miExit) {
             close();
@@ -321,12 +359,52 @@ extends WindowFX
         return selectedFile;
     }
 
-    private Callback<TreeTableColumn<ProfilerData, Float>, TreeTableCell<ProfilerData, Float>> cellFactoryFloat = (tableColumn) -> {
+    /**
+     * Table callbacks to format table cells
+     */
+    private Callback<TableColumn<SourceLineData, Float>, TableCell<SourceLineData, Float>> formatCellFloat = (tableColumn) -> {
+        TableCell<SourceLineData, Float> tableCell = new TableCell<>() {
+            @Override
+            protected void updateItem(Float item, boolean empty) {
+                super.updateItem(item, empty);
+                this.setText(null);
+                this.setGraphic(null);
+
+                if(!empty){
+                    SourceLineData sl = this.getTableView().getItems().get(this.getIndex());
+                    if (sl.isCodeLine())
+                        this.setText(String.format("%.3f", item/1000));
+                }
+            }
+        };
+        return tableCell;
+    };
+    private Callback<TableColumn<SourceLineData, Integer>, TableCell<SourceLineData, Integer>> formatCellInt = (tableColumn) -> {
+        TableCell<SourceLineData, Integer> tableCell = new TableCell<>() {
+            @Override
+            protected void updateItem(Integer item, boolean empty) {
+                super.updateItem(item, empty);
+                this.setText(null);
+                this.setGraphic(null);
+
+                if(!empty){
+                    SourceLineData sl = this.getTableView().getItems().get(this.getIndex());
+                    if (sl.isCodeLine())
+                        this.setText(String.format("%d", item));
+                }
+            }
+        };
+        return tableCell;
+    };
+
+    /**
+     * Tree table callbacks to format tree table cells
+     */
+    private Callback<TreeTableColumn<ProfilerData, Float>, TreeTableCell<ProfilerData, Float>> treeFactoryFloat = (tableColumn) -> {
         TreeTableCell<ProfilerData, Float> tableCell = new TreeTableCell<>() {
             @Override
             protected void updateItem(Float item, boolean empty) {
                 super.updateItem(item, empty);
-
                 this.setText(null);
                 this.setGraphic(null);
 
