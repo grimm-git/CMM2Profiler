@@ -16,6 +16,7 @@
  */
 package CMM2Profiler.core;
 
+import static CMM2Profiler.core.MMBasic.*;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -45,6 +46,7 @@ public class SourceFile
         BufferedReader reader;
         String line;
         int lineno;
+        int level;
 
         File fh=new File(base, path);
         InputStream iStream = new FileInputStream(fh);
@@ -53,10 +55,12 @@ public class SourceFile
             
         reader = new BufferedReader(new InputStreamReader(iStream));
           
-        lineno=1;
+        lineno=1; level=0;
         line = reader.readLine();
         while (line != null) {
-            SourceLineList.add(new SourceLineData(line, lineno++,0,0));
+            SourceLineData data = new SourceLineData(line, lineno++,0,0);
+            level = calcSourceLineLevel(level,data);
+            SourceLineList.add(data);
             line = reader.readLine();
         }
         reader.close();
@@ -64,11 +68,48 @@ public class SourceFile
 
     public ArrayList<SourceLineData> getSourceList() { return SourceLineList; }
     
-    public String getSourceLine(int no)
+    public SourceLineData getSourceLineData(int no)
     {
-        return no<SourceLineList.size() ? SourceLineList.get(no).getCodeLine() : "";
+        return no<SourceLineList.size() ? SourceLineList.get(no) : null;
     }
 
+    public String getSourceLine(int no)
+    {
+        SourceLineData sl = getSourceLineData(no);
+        return sl == null ? "" : sl.getCodeLine();
+    }
+
+    public Integer calcSourceLineLevel(int oldLevel, SourceLineData line)
+    {
+        String codeLine = line.getCodeLine().toLowerCase();
+        line.setLevel(oldLevel);
+        
+        if (codeLine.startsWith("function")
+             || codeLine.startsWith("sub")
+             || codeLine.startsWith("select case")
+             || (codeLine.startsWith("do") && !isDoLoopOneliner(codeLine))
+             || (codeLine.startsWith("for") && !isForNextOneliner(codeLine))
+             || (codeLine.startsWith("if") && !isIfThenOneliner(codeLine))) {
+            return oldLevel+1;
+            
+        } else if (codeLine.startsWith("else")
+             || codeLine.startsWith("case ")) {
+            line.setLevel(oldLevel-1);
+              
+        } else if (codeLine.startsWith("end function")
+             || codeLine.startsWith("end sub")
+             || codeLine.startsWith("end select")
+             || codeLine.startsWith("endif")
+             || codeLine.startsWith("next")
+             || codeLine.startsWith("loop")) {
+            line.setLevel(oldLevel-1);
+            return oldLevel-1;
+        }
+        
+        return oldLevel;
+    }
+
+    
     public String getBasePath() { return basePath; }
     public String getFilePath() { return filePath; }
     public int getLastLineNo() { return SourceLineList.size()-1; }

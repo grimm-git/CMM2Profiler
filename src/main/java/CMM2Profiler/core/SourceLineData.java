@@ -33,13 +33,16 @@ public class SourceLineData
     private final StringProperty  slCode  = new SimpleStringProperty();
     private final IntegerProperty slCalls = new SimpleIntegerProperty();
     private final FloatProperty   slTime  = new SimpleFloatProperty();
-
+    
+    private int level;
+    
     public SourceLineData()
     {
         slNo.set(0);
         slCode.set("");
         slCalls.set(0);
         slTime.set(0);
+        level = 0;
     }
 
     public SourceLineData(String line, Integer no, Integer calls, float time)
@@ -48,20 +51,24 @@ public class SourceLineData
         slCode.set(line.trim());
         slCalls.set(calls);
         slTime.set(time);
+        level = 0;
     }
     
     public int getLineNo() { return slNo.get(); }
-    public void getLineNo(int value) { slNo.set(value); }
+    public void setLineNo(int value) { slNo.set(value); }
 
     public String getCodeLine() { return slCode.get(); }
-    public void getCodeLine(String line) { slCode.set(line); }
+    public void setCodeLine(String line) { slCode.set(line); }
     
     public int getNoOfCalls() { return slCalls.get(); }
-    public void getNoOfCalls(int value) { slCalls.set(value); }
+    public void setNoOfCalls(int value) { slCalls.set(value); }
     
     public float getExecTime() { return slTime.get(); }
-    public void getExecTime(float value) { slTime.set(value); }
+    public void setExecTime(float value) { slTime.set(value); }
     
+    public int getLevel() { return level; }
+    public void setLevel(int value) { level=value; }
+
     public boolean isCodeLine()
     {
         String line=slCode.get();

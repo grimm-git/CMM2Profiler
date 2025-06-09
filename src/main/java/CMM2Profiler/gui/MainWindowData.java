@@ -35,7 +35,6 @@ public class MainWindowData
 {
     private final StringProperty nameProgram = new SimpleStringProperty();
     private final ObservableList<String> listCodelines = FXCollections.observableArrayList();
-    private final ObservableList<ProfilerData> functionList = FXCollections.observableArrayList();
     private final ObservableList<SourceLineData> sourceList = FXCollections.observableArrayList();
     private final ObservableList<String> listSFN =  FXCollections.observableArrayList();
     private final StringProperty selectedSFN = new SimpleStringProperty();
@@ -65,7 +64,6 @@ public class MainWindowData
     }
      
     public ObservableList<String> getCodeLinesList() { return listCodelines; }
-    public ObservableList<ProfilerData> getFunctionList() { return functionList; }
     public ObservableList<SourceLineData> getSourceList() { return sourceList; }
     public ObservableList<String> getSFNList() { return listSFN; }
     public TreeItem<ProfilerData> getFunctionTree() { return treeRoot; }
@@ -91,15 +89,6 @@ public class MainWindowData
         }
     }
 
-    public void updateFunctionList()
-    {
-        functionList.clear();
-       
-        for (Node<ProfilerData> node : functionTree.getChildren()) {
-            functionList.add(node.getData());
-        }
-    }
-    
     public void updateFunctionTree()
     {
         if (functionTree==null) return;
@@ -124,6 +113,21 @@ public class MainWindowData
     {
         sourceList.clear();
         sourceList.addAll(source.getSourceList());
+    }
+    
+    public void setProfilerDataInSource(SourceFile source)
+    {
+        String srcName = source.getFilePath();
+        if (source == mainSource) srcName = "";
+        
+        for (ProfilerData data : dataProfiler) {
+            if (srcName.equals(data.getSourceFile())) {
+                SourceLineData sl = source.getSourceLineData(data.getLineNo()-1);
+                if (sl == null) continue;
+                sl.setExecTime(data.getExecTime());
+                sl.setNoOfCalls(data.getCallsCnt());
+            }
+        }
     }
     
     // -------------------------------------------------------------------------------- 

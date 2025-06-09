@@ -138,6 +138,7 @@ extends WindowFX
         colSourceLine.setReorderable(false);
         
         colSourceCode.setCellValueFactory(new PropertyValueFactory<>("slCode"));
+        colSourceCode.setCellFactory(formatCellLevel);
         colSourceCode.getStyleClass().add("column-align-left");
         colSourceCode.setReorderable(false);
         colSourceCode.prefWidthProperty().bind(tableSource.widthProperty()
@@ -258,6 +259,7 @@ extends WindowFX
         try {
             dataModel.mainSource.load(filePath, fileName);
             dataModel.addSFNMain(fileName);
+            dataModel.setProfilerDataInSource(dataModel.mainSource);
             
             for (int n=0 ; n < dataModel.mainSource.getLastLineNo() ; n++) {
                 String codeLine = dataModel.mainSource.getSourceLine(n);
@@ -270,6 +272,7 @@ extends WindowFX
                     include.load(filePath, codeLine.substring(a,b));
                     dataModel.includes.add(include);
                     dataModel.addSFNInclude(codeLine.substring(a,b));
+                    dataModel.setProfilerDataInSource(include);
                 }
             }
         } catch (IOException ex) {
@@ -362,6 +365,26 @@ extends WindowFX
     /**
      * Table callbacks to format table cells
      */
+    private Callback<TableColumn<SourceLineData, String>, TableCell<SourceLineData, String>> formatCellLevel = (tableColumn) -> {
+        TableCell<SourceLineData, String> tableCell = new TableCell<>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                this.setText(null);
+                this.setGraphic(null);
+
+                if(!empty){
+                    SourceLineData sl = this.getTableView().getItems().get(this.getIndex());
+                    if (sl.isCodeLine() && sl.getLevel()>0) {
+                        String format=String.format("%%%ds%%s",sl.getLevel()*4);
+                        this.setText(String.format(format,"",item));
+                    } else
+                        this.setText(item);
+                }
+            }
+        };
+        return tableCell;
+    };
     private Callback<TableColumn<SourceLineData, Float>, TableCell<SourceLineData, Float>> formatCellFloat = (tableColumn) -> {
         TableCell<SourceLineData, Float> tableCell = new TableCell<>() {
             @Override
