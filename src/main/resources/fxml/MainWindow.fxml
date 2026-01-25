@@ -2,16 +2,12 @@
 
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
-<?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
 <?import javafx.scene.control.Menu?>
 <?import javafx.scene.control.MenuBar?>
 <?import javafx.scene.control.MenuItem?>
 <?import javafx.scene.control.Separator?>
-<?import javafx.scene.control.Tab?>
-<?import javafx.scene.control.TabPane?>
-<?import javafx.scene.control.TableColumn?>
-<?import javafx.scene.control.TableView?>
 <?import javafx.scene.control.TreeTableColumn?>
 <?import javafx.scene.control.TreeTableView?>
 <?import javafx.scene.image.Image?>
@@ -20,7 +16,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<VBox xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1">
+<VBox xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1">
    <children>
       <MenuBar>
         <menus>
@@ -86,63 +82,43 @@
             <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
          </VBox.margin>
       </HBox>
-      <TabPane tabClosingPolicy="UNAVAILABLE">
-        <tabs>
-          <Tab text="Profiler">
-               <content>
-                  <HBox fx:id="hboxContents" spacing="10.0">
-                     <padding>
-                        <Insets left="5.0" right="5.0" />
-                     </padding>
+      <HBox fx:id="hboxContents" spacing="8.0">
+         <padding>
+            <Insets left="5.0" right="5.0" />
+         </padding>
+         <children>
+            <TreeTableView fx:id="SourceTree" HBox.hgrow="ALWAYS">
+              <columns>
+                <TreeTableColumn fx:id="colLine" editable="false" maxWidth="120.0" minWidth="80.0" prefWidth="100.0" sortable="false" text="Line" />
+                  <TreeTableColumn fx:id="colCalls" editable="false" maxWidth="150.0" prefWidth="75.0" sortable="false" text="Calls" />
+                  <TreeTableColumn fx:id="colTime" editable="false" maxWidth="200.0" prefWidth="75.0" sortable="false" text="Time [ms]" />
+                <TreeTableColumn fx:id="colCode" editable="false" minWidth="300.0" prefWidth="400.0" sortable="false" text="Code" />
+                  <TreeTableColumn fx:id="colComment" editable="false" minWidth="200.0" prefWidth="300.0" sortable="false" text="Comments" />
+              </columns>
+            </TreeTableView>
+            <VBox>
+               <children>
+                  <HBox alignment="CENTER" VBox.vgrow="NEVER">
                      <children>
-                        <TreeTableView fx:id="tableFunctions" HBox.hgrow="ALWAYS">
-                          <columns>
-                            <TreeTableColumn fx:id="colName" editable="false" prefWidth="200.0" text="Function/Sub" />
-                              <TreeTableColumn fx:id="colCallsCnt" editable="false" prefWidth="100.0" text="Calls" />
-                              <TreeTableColumn fx:id="colExecTime" editable="false" prefWidth="100.0" text="Time [ms]" />
-                            <TreeTableColumn fx:id="colCallsTime" prefWidth="150.0" text="Calls x Time [ms]" />
-                          </columns>
-                        </TreeTableView>
+                        <Label text="Subs / Functions" textAlignment="CENTER">
+                           <font>
+                              <Font name="System Bold" size="13.0" />
+                           </font>
+                        </Label>
                      </children>
+                     <VBox.margin>
+                        <Insets bottom="4.0" top="4.0" />
+                     </VBox.margin>
                   </HBox>
-               </content>
-          </Tab>
-          <Tab fx:id="tabSource" text="Source">
-               <content>
-                  <VBox>
-                     <children>
-                        <HBox spacing="10.0">
-                           <children>
-                              <TableView fx:id="tableSource" HBox.hgrow="ALWAYS">
-                                <columns>
-                                  <TableColumn fx:id="colSourceLine" editable="false" maxWidth="100.0" minWidth="20.0" prefWidth="50.0" text="Line" />
-                                  <TableColumn fx:id="colSourceCode" editable="false" minWidth="300.0" prefWidth="400.0" text="Code" />
-                                    <TableColumn fx:id="colSourceTime" editable="false" minWidth="20.0" prefWidth="75.0" text="Time [ms]" />
-                                    <TableColumn fx:id="colSourceCalls" editable="false" minWidth="20.0" prefWidth="75.0" text="Calls" />
-                                </columns>
-                              </TableView>
-                           </children>
-                           <padding>
-                              <Insets left="5.0" right="5.0" />
-                           </padding>
-                        </HBox>
-                        <HBox>
-                           <children>
-                              <ComboBox fx:id="comboSource" prefWidth="150.0" promptText="Source FIle" />
-                           </children>
-                           <padding>
-                              <Insets left="5.0" right="5.0" />
-                           </padding>
-                           <VBox.margin>
-                              <Insets top="5.0" />
-                           </VBox.margin>
-                        </HBox>
-                     </children>
-                  </VBox>
-               </content>
-          </Tab>
-        </tabs>
-      </TabPane>
+                  <ListView fx:id="listFunctions" prefWidth="200.0" VBox.vgrow="ALWAYS">
+                     <VBox.margin>
+                        <Insets />
+                     </VBox.margin>
+                  </ListView>
+               </children>
+            </VBox>
+         </children>
+      </HBox>
       <Separator prefWidth="200.0">
          <VBox.margin>
             <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
