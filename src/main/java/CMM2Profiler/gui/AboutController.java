@@ -53,7 +53,7 @@ extends WindowFX
         text.setStyle("-fx-font-weight: bold; -fx-font-size:1.2em");
         textArea.getChildren().add(text);
         
-        text = new Text("Author: Matthias Grimm, \u00A92024\n");
+        text = new Text("Author: Matthias Grimm, \u00A92024/2025/2026\n");
         textArea.getChildren().add(text);
 
         text = new Text("\n");

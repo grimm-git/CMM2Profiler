@@ -18,36 +18,27 @@
 package CMM2Profiler.gui;
 
 import CMM2Profiler.Defaults;
-import CMM2Profiler.core.ProfilerData;
-import CMM2Profiler.core.SourceFile;
-import CMM2Profiler.core.SourceLineData;
-import java.io.BufferedReader;
+import CMM2Profiler.core.Function;
+import CMM2Profiler.core.ObjectConverter;
+import CMM2Profiler.core.SourceLine;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
+import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
-import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.ListView;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.ScrollBar;
-import javafx.scene.control.Tab;
-import javafx.scene.control.TableCell;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableView;
 import javafx.scene.control.TreeTableCell;
 import javafx.scene.control.TreeTableColumn;
 import javafx.scene.control.TreeTableView;
-import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.control.cell.TreeItemPropertyValueFactory;
 import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.stage.FileChooser;
@@ -68,24 +59,18 @@ extends WindowFX
     @FXML  private MenuItem miOpen;
     @FXML  private MenuItem miExit;
     @FXML  private MenuItem miAbout;
+    
+    @FXML  private TreeTableView<SourceLine> SourceTree;
+    @FXML  private TreeTableColumn<SourceLine, Integer> colLine;
+    @FXML  private TreeTableColumn<SourceLine, Integer> colCalls;
+    @FXML  private TreeTableColumn<SourceLine, Float> colTime;
+    @FXML  private TreeTableColumn<SourceLine, String> colCode;
+    @FXML  private TreeTableColumn<SourceLine, String> colComment;
 
-    @FXML  private TreeTableView<ProfilerData> tableFunctions;
-    @FXML  private TreeTableColumn<ProfilerData, String> colName;
-    @FXML  private TreeTableColumn<ProfilerData, Integer> colCallsCnt;
-    @FXML  private TreeTableColumn<ProfilerData, Float> colExecTime;
-    @FXML  private TreeTableColumn<ProfilerData, Float> colCallsTime;
+    @FXML  private ListView<Function> listFunctions;
     
-    @FXML  private Tab tabSource;
-    @FXML  private TableView<SourceLineData> tableSource;
-    @FXML  private TableColumn<SourceLineData, Integer> colSourceLine;
-    @FXML  private TableColumn<SourceLineData, String> colSourceCode;
-    @FXML  private TableColumn<SourceLineData, Float> colSourceTime;
-    @FXML  private TableColumn<SourceLineData, Integer> colSourceCalls;
-    @FXML  private ComboBox<String> comboSource;
-    
-    private final DoubleProperty tableFunctionsBarWidthProperty = new SimpleDoubleProperty();
-    private final DoubleProperty tableSourceBarWidthProperty = new SimpleDoubleProperty();
     private final MainWindowData dataModel;
+    private final DoubleProperty treeTableBarWidthProperty = new SimpleDoubleProperty();
 
     public MainWindowController(Stage stage) throws IOException
     {
@@ -105,195 +90,64 @@ extends WindowFX
             (ObservableValue<? extends String> ov, String oldVal, String newVal) -> {
                 showSuccess(newVal);
             });
-        
+
+        // Main Program Page
         lbPrgName.textProperty().bind(dataModel.nameProperty());
         
-        colName.setCellValueFactory(new TreeItemPropertyValueFactory<>("codeLine"));
-        colName.setCellFactory(cellFactoryFunction);
-        colName.getStyleClass().add("column-align-left");
-        colName.setReorderable(false);
+        // TreeTableView with Profiler Data
+        colLine.setCellValueFactory(new TreeItemPropertyValueFactory<>("lineNo"));
+        colLine.setCellFactory(formatTreeLineNo);
+        colLine.getStyleClass().add("column-align-right");
+        colLine.setReorderable(false);
 
-        colCallsCnt.setCellValueFactory(new TreeItemPropertyValueFactory<>("callsCnt"));
-        colCallsCnt.getStyleClass().add("column-align-right");
-        colCallsCnt.setReorderable(false);
+        colCalls.setCellValueFactory(new TreeItemPropertyValueFactory<>("Calls"));
+        colCalls.setCellFactory(formatTreeInt);
+        colCalls.getStyleClass().add("column-align-right");
+        colCalls.setReorderable(false);
 
-        colExecTime.setCellValueFactory(new TreeItemPropertyValueFactory<>("execTime"));
-        colExecTime.setCellFactory(treeFactoryFloat);
-        colExecTime.getStyleClass().add("column-align-right");
-        colExecTime.setReorderable(false);
-        
-        colCallsTime.setCellValueFactory(new TreeItemPropertyValueFactory<>("CallsTime"));
-        colCallsTime.setCellFactory(treeFactoryFloat);
-        colCallsTime.getStyleClass().add("column-align-right");
-        colCallsTime.setReorderable(false);
-        colCallsTime.prefWidthProperty().bind(tableFunctions.widthProperty()
-                                       .subtract(colName.widthProperty())
-                                       .subtract(colCallsCnt.widthProperty())
-                                       .subtract(colExecTime.widthProperty())
-                                       .subtract(tableFunctionsBarWidthProperty)
+        colTime.setCellValueFactory(new TreeItemPropertyValueFactory<>("Time"));
+        colTime.setCellFactory(formatTreeFloat);
+        colTime.getStyleClass().add("column-align-right");
+        colTime.setReorderable(false);
+
+        colCode.setCellValueFactory(new TreeItemPropertyValueFactory<>("Source"));
+        colCode.setCellFactory(formatTreeLevel);
+        colCode.getStyleClass().add("column-align-left");
+        colCode.setReorderable(false);
+
+        colComment.setCellValueFactory(new TreeItemPropertyValueFactory<>("Comment"));
+        colComment.getStyleClass().add("column-align-left");
+        colComment.setReorderable(false);
+        colComment.prefWidthProperty().bind(SourceTree.widthProperty()
+                                       .subtract(colLine.widthProperty())
+                                       .subtract(colCalls.widthProperty())
+                                       .subtract(colTime.widthProperty())
+                                       .subtract(colCode.widthProperty())
+                                       .subtract(treeTableBarWidthProperty)
                                        .subtract(2));
+       
+        // Function List
+        listFunctions.setItems(dataModel.getFunctionList().sorted(Function.Comparator));
+        listFunctions.setCellFactory(LabelListCell.cellFactory(new FunctionConverter()));
+        listFunctions.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<Function>() {
+                @Override
+                public void changed(ObservableValue<? extends Function> ov, Function oldVal, Function newVal) {
+                   
+                }
+            });
         
-        colSourceLine.setCellValueFactory(new PropertyValueFactory<>("slNo"));
-        colSourceLine.getStyleClass().add("column-align-left");
-        colSourceLine.setReorderable(false);
-        
-        colSourceCode.setCellValueFactory(new PropertyValueFactory<>("slCode"));
-        colSourceCode.setCellFactory(formatCellLevel);
-        colSourceCode.getStyleClass().add("column-align-left");
-        colSourceCode.setReorderable(false);
-        colSourceCode.prefWidthProperty().bind(tableSource.widthProperty()
-                                       .subtract(colSourceLine.widthProperty())
-                                       .subtract(colSourceCalls.widthProperty())
-                                       .subtract(colSourceTime.widthProperty())
-                                       .subtract(tableSourceBarWidthProperty)
-                                       .subtract(2));
-
-        colSourceCalls.setCellValueFactory(new PropertyValueFactory<>("slCalls"));
-        colSourceCalls.setCellFactory(formatCellInt);
-        colSourceCalls.getStyleClass().add("column-align-right");
-        colSourceCalls.setReorderable(false);
-
-        colSourceTime.setCellValueFactory(new PropertyValueFactory<>("slTime"));
-        colSourceTime.setCellFactory(formatCellFloat);
-        colSourceTime.getStyleClass().add("column-align-right");
-        colSourceTime.setReorderable(false);
-
-        tableSource.setItems(dataModel.getSourceList());
-
-        comboSource.setItems(dataModel.getSFNList());
-        comboSource.valueProperty().bindBidirectional(dataModel.selectedSFNProperty());
-        comboSource.valueProperty().addListener((obs, oldVal, newVal) -> { showSourceFile(newVal); });
-        tabSource.textProperty().bind(dataModel.selectedSFNProperty());
         
         stage.setOnShown(ev -> {
-            final ScrollBar bar = getVerticalScrollbar(tableFunctions);
+            final ScrollBar bar = getVerticalScrollbar(SourceTree);
             if (bar != null) {
-                tableFunctionsBarWidthProperty.set(bar.visibleProperty().get() ? bar.getWidth() : 0);
+                treeTableBarWidthProperty.set(bar.visibleProperty().get() ? bar.getWidth() : 0);
                 bar.visibleProperty().addListener((obs, oldVal, newVal) -> {  
-                    tableFunctionsBarWidthProperty.set(newVal ? bar.getWidth() : 0);
-                });
-            }
-            final ScrollBar bar2 = getVerticalScrollbar(tableSource);
-            if (bar2 != null) {
-                tableSourceBarWidthProperty.set(bar2.visibleProperty().get() ? bar2.getWidth() : 0);
-                bar2.visibleProperty().addListener((obs, oldVal, newVal) -> {  
-                    tableSourceBarWidthProperty.set(newVal ? bar2.getWidth() : 0);
+                    treeTableBarWidthProperty.set(newVal ? bar.getWidth() : 0);
                 });
             }
         });
     }
-    
-    private void loadProfilerLog(String filePath, String fileName)
-    {
-        BufferedReader reader;
-        ProfilerData rootFunction;
-        ProfilerData mainFunction;
-        ProfilerData curFunction;
-        boolean catchNext=false;
-
-        try {
-            File fh=new File(filePath, fileName);
-            InputStream iStream = new FileInputStream(fh);
-            reader = new BufferedReader(new InputStreamReader(iStream));
-            
-            // Read header and verify file format
-            String line = reader.readLine();
-            if (line.charAt(0)=='/') line=line.substring(1);
-            String[] parts = line.split("/");
-            if (parts.length != 3) throw new IOException("Bad file format");
-            if (!parts[2].endsWith(".bas")) throw new IOException("Bad file format");
-
-            rootFunction = new ProfilerData();
-            rootFunction.setCodeLine(parts[1]);
-            rootFunction.setSourceFile(parts[2]);
-            dataModel.addNode(null, rootFunction);  // create and add root node
-
-            mainFunction = new ProfilerData();
-            mainFunction.setCodeLine("Main Program");
-            mainFunction.setSourceFile(parts[2]);
-            dataModel.addNode(rootFunction, mainFunction);  // create and add root node
-                        
-            curFunction = mainFunction;
-            
-            line = reader.readLine();
-            while (line != null) {
-                ProfilerData tmp = new ProfilerData(line);
-                dataModel.addProfilerData(tmp);
-                
-                if (tmp.isFunction()) {
-                    dataModel.addNode(rootFunction, tmp);  // add Node to the root
-                    curFunction = tmp;
-                    // The function call has always an execution counter of one. So we
-                    // look for the first command in the function to get the real execution counter
-                    catchNext=true;
-                } else if (tmp.isEndFunction()) {
-                    dataModel.addNode(curFunction, tmp);  // add Node to the function tree
-                    curFunction.setExecTime(curFunction.getExecTime()+tmp.getExecTime());
-                    curFunction=mainFunction;
-                } else if (tmp.isMainCode()) {
-                    dataModel.addNode(mainFunction, tmp);  // add Node to the main function
-                    mainFunction.setExecTime(mainFunction.getExecTime()+tmp.getExecTime());
-                } else {
-                    dataModel.addNode(curFunction, tmp);  // add Node to the function tree
-                    curFunction.setExecTime(curFunction.getExecTime()+tmp.getExecTime());
-                    if (catchNext) {
-                        // Here we copy the execution counter from the first command in the
-                        // function to the function itself.
-                        curFunction.setCallsCnt(tmp.getCallsCnt());
-                        catchNext=false;
-                    }
-                }
-                line = reader.readLine();
-            }
-            reader.close();
-
-        } catch (IOException ex) {
-            showError(ex.getLocalizedMessage());
-        }
-    }
-    
-    private void loadSourceFiles(String filePath, String fileName)
-    {
-        String temp;
         
-        try {
-            dataModel.mainSource.load(filePath, fileName);
-            dataModel.addSFNMain(fileName);
-            dataModel.setProfilerDataInSource(dataModel.mainSource);
-            
-            for (int n=0 ; n < dataModel.mainSource.getLastLineNo() ; n++) {
-                String codeLine = dataModel.mainSource.getSourceLine(n);
-                if (codeLine.length() < 12) continue;
-                temp = codeLine.substring(0, 8).toLowerCase();
-                if (temp.equals("#include")) {
-                    int a = codeLine.indexOf('"')+1;
-                    int b = codeLine.indexOf('"', a);
-                    SourceFile include=new SourceFile();
-                    include.load(filePath, codeLine.substring(a,b));
-                    dataModel.includes.add(include);
-                    dataModel.addSFNInclude(codeLine.substring(a,b));
-                    dataModel.setProfilerDataInSource(include);
-                }
-            }
-        } catch (IOException ex) {
-            showError(ex.getLocalizedMessage());
-        }
-    }
-    
-    private void showSourceFile(String newVal)
-    {
-        if (newVal.equals(dataModel.mainSource.getFilePath()))
-            dataModel.updateSourceList(dataModel.mainSource);
-        else {
-            for (SourceFile sf : dataModel.includes) {
-                if (newVal.equals(sf.getFilePath())) {
-                    dataModel.updateSourceList(sf);
-                    break;
-                }
-            }
-        }
-    }
-    
     // ---------------------------------------------------------------------------------------- 
     //                                      FXML GUI handler
     // ---------------------------------------------------------------------------------------- 
@@ -327,18 +181,25 @@ extends WindowFX
         // File Menu
         if (event.getSource() == miOpen) {
             File fh=loadDialog("Open Source/Profiler File...");
-            String fileName = fh.getName();
-            String filePath = fh.getParent();
+            if (fh != null) {
+                String fileName = fh.getName();
+                String filePath = fh.getParent();
              
-            int pos=fileName.lastIndexOf('.');
-            if (pos != -1) fileName=fileName.substring(0,pos);
-            dataModel.setProgramName(fileName+".bas");
+                int pos=fileName.lastIndexOf('.');
+                if (pos != -1) fileName=fileName.substring(0,pos);
+                dataModel.setProgramName(fileName+".bas");
             
-            loadProfilerLog(filePath, fileName+".csv");
-            dataModel.updateFunctionTree();
-            tableFunctions.setRoot(dataModel.getFunctionTree());
-
-            loadSourceFiles(filePath, fileName+".bas");
+                try {
+                    dataModel.mainSource.load(filePath, fileName);
+                    dataModel.updateProfilerTree();
+                    SourceTree.setRoot(dataModel.getProfilerTree());
+                    SourceTree.setShowRoot(false);
+                    dataModel.updateFunctionList();
+                    
+                } catch (IOException ex) {
+                    showError(ex.getLocalizedMessage());
+                }
+            }
             
         } else if (event.getSource() == miExit) {
             close();
@@ -363,113 +224,106 @@ extends WindowFX
     }
 
     /**
-     * Table callbacks to format table cells
+     * Tree table callbacks to format tree table cells
      */
-    private Callback<TableColumn<SourceLineData, String>, TableCell<SourceLineData, String>> formatCellLevel = (tableColumn) -> {
-        TableCell<SourceLineData, String> tableCell = new TableCell<>() {
-            @Override
-            protected void updateItem(String item, boolean empty) {
-                super.updateItem(item, empty);
-                this.setText(null);
-                this.setGraphic(null);
-
-                if(!empty){
-                    SourceLineData sl = this.getTableView().getItems().get(this.getIndex());
-                    if (sl.isCodeLine() && sl.getLevel()>0) {
-                        String format=String.format("%%%ds%%s",sl.getLevel()*4);
-                        this.setText(String.format(format,"",item));
-                    } else
-                        this.setText(item);
-                }
-            }
-        };
-        return tableCell;
-    };
-    private Callback<TableColumn<SourceLineData, Float>, TableCell<SourceLineData, Float>> formatCellFloat = (tableColumn) -> {
-        TableCell<SourceLineData, Float> tableCell = new TableCell<>() {
-            @Override
-            protected void updateItem(Float item, boolean empty) {
-                super.updateItem(item, empty);
-                this.setText(null);
-                this.setGraphic(null);
-
-                if(!empty){
-                    SourceLineData sl = this.getTableView().getItems().get(this.getIndex());
-                    if (sl.isCodeLine())
-                        this.setText(String.format("%.3f", item/1000));
-                }
-            }
-        };
-        return tableCell;
-    };
-    private Callback<TableColumn<SourceLineData, Integer>, TableCell<SourceLineData, Integer>> formatCellInt = (tableColumn) -> {
-        TableCell<SourceLineData, Integer> tableCell = new TableCell<>() {
+    private Callback<TreeTableColumn<SourceLine, Integer>, TreeTableCell<SourceLine, Integer>> formatTreeLineNo = (tableColumn) -> {
+        TreeTableCell<SourceLine, Integer> tableCell = new TreeTableCell<>() {
             @Override
             protected void updateItem(Integer item, boolean empty) {
                 super.updateItem(item, empty);
                 this.setText(null);
                 this.setGraphic(null);
 
-                if(!empty){
-                    SourceLineData sl = this.getTableView().getItems().get(this.getIndex());
-                    if (sl.isCodeLine())
-                        this.setText(String.format("%d", item));
-                }
+                SourceLine srcLine = this.getTableRow().getItem();
+                if (empty || item==null || srcLine==null) return;
+
+                if (srcLine.isCodeLine())
+                    this.setText(String.format("%d", item));
             }
         };
         return tableCell;
     };
 
-    /**
-     * Tree table callbacks to format tree table cells
-     */
-    private Callback<TreeTableColumn<ProfilerData, Float>, TreeTableCell<ProfilerData, Float>> treeFactoryFloat = (tableColumn) -> {
-        TreeTableCell<ProfilerData, Float> tableCell = new TreeTableCell<>() {
+    private Callback<TreeTableColumn<SourceLine, Integer>, TreeTableCell<SourceLine, Integer>> formatTreeInt = (tableColumn) -> {
+        TreeTableCell<SourceLine, Integer> tableCell = new TreeTableCell<>() {
+            @Override
+            protected void updateItem(Integer item, boolean empty) {
+                super.updateItem(item, empty);
+                this.setText(null);
+                this.setGraphic(null);
+                
+                SourceLine srcLine = this.getTableRow().getItem();
+                if (empty || item==null || srcLine==null) return;
+                
+                if (srcLine.isCodeLine())
+                    this.setText(String.format("%d", item));
+            }
+        };
+        return tableCell;
+    };
+
+    private Callback<TreeTableColumn<SourceLine, Float>, TreeTableCell<SourceLine, Float>> formatTreeFloat = (tableColumn) -> {
+        TreeTableCell<SourceLine, Float> tableCell = new TreeTableCell<>() {
             @Override
             protected void updateItem(Float item, boolean empty) {
                 super.updateItem(item, empty);
                 this.setText(null);
                 this.setGraphic(null);
 
-                if(!empty){
+                SourceLine srcLine = this.getTableRow().getItem();
+                if (empty || item==null || srcLine==null) return;
+
+                if (srcLine.isCodeLine())
                     this.setText(String.format("%.3f", item/1000));
-                }
+            }
+        };
+        return tableCell;
+    };
+
+    private Callback<TreeTableColumn<SourceLine, String>, TreeTableCell<SourceLine, String>> formatTreeLevel = (tableColumn) -> {
+        TreeTableCell<SourceLine, String> tableCell = new TreeTableCell<>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                this.setText(null);
+                this.setGraphic(null);
+
+                SourceLine srcLine = this.getTableRow().getItem();
+                if (empty || item==null || srcLine==null) return;
+
+                if (srcLine.isCodeLine() && srcLine.getLevel()>0) {
+                    String format=String.format("%%%ds%%s",srcLine.getLevel()*4);
+                    this.setText(String.format(format,"",item));
+                } else
+                    this.setText(item);
             }
         };
         return tableCell;
     };
     
-    private final Image imageSub = new Image(getClass().getResource("/images/16_sub.png").toExternalForm(), 16, 16, false, false);
-    private final Image imageFunction = new Image(getClass().getResource("/images/16_function.png").toExternalForm(), 16, 16, false, false);
-    private final Image imageCode = new Image(getClass().getResource("/images/16_code.png").toExternalForm(), 16, 16, false, false);
+    // ---------------------------------------------------------------------------------------- 
+    //                          private inner class for CellFactory
+    // ---------------------------------------------------------------------------------------- 
+    
+    private final Image imgSub = new Image(getClass().getResource("/images/16_sub.png").toExternalForm(), 22, 22, false, false);
+    private final Image imgFunction = new Image(getClass().getResource("/images/16_function.png").toExternalForm(), 22, 22, false, false);
 
-    private Callback<TreeTableColumn<ProfilerData, String>, TreeTableCell<ProfilerData, String>> cellFactoryFunction = (tableColumn) -> {
-        TreeTableCell<ProfilerData, String> tableCell = new TreeTableCell<>() {
-            @Override
-            protected void updateItem(String item, boolean empty) {
-                super.updateItem(item, empty);
+    private class FunctionConverter
+    extends ObjectConverter<Function>
+    {
+        public FunctionConverter() {
+            super();
+        }
 
-                this.setText(null);
-                this.setGraphic(null);
+        @Override
+        public String getString(Function object) {
+            return object.getName();
+        }
 
-                if(!empty){
-                    String tmp=item.toLowerCase();
-                    if (tmp.startsWith("function ")) {
-                        this.setText(item.substring(9));
-                        this.setGraphic(new ImageView(imageFunction));
-
-                    } else if (tmp.startsWith("sub ")) {
-                        this.setText(item.substring(4));
-                        this.setGraphic(new ImageView(imageSub));
-                        
-                    } else {
-                        this.setText(item);
-                        this.setGraphic(new ImageView(imageCode));
-                    }
-                }
-            }
-        };
-        return tableCell;
-    };
+        @Override
+        public Image getImage(Function object) {
+            return object.isFunction() ? imgFunction : imgSub;
+        }
+    }
 
 }

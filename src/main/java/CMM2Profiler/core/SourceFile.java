@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025 grimm
+ * Copyright (C) 2026 grimm
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,101 +16,26 @@
  */
 package CMM2Profiler.core;
 
-import static CMM2Profiler.core.MMBasic.*;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.util.ArrayList;
-
 /**
  *
- * @author grimm
+ * @author Matthias Grimm
  */
 public class SourceFile
 {
-    private String basePath;
-    private String filePath;
-    private final ArrayList<SourceLineData> SourceLineList = new ArrayList<>();
-    
-    public SourceFile()
+    private final String path;
+    private int firstline;    // in full source context
+    private int lastline;
+       
+    public SourceFile(String path, int first, int last)
     {
-        basePath="";
-        filePath="";
+        this.path=path;
+        this.firstline=first;
+        this.lastline=last;
     }
     
-    public void load(String base, String path) throws IOException
-    {
-        BufferedReader reader;
-        String line;
-        int lineno;
-        int level;
-
-        File fh=new File(base, path);
-        InputStream iStream = new FileInputStream(fh);
-        basePath=base;
-        filePath=path;
-            
-        reader = new BufferedReader(new InputStreamReader(iStream));
-          
-        lineno=1; level=0;
-        line = reader.readLine();
-        while (line != null) {
-            SourceLineData data = new SourceLineData(line, lineno++,0,0);
-            level = calcSourceLineLevel(level,data);
-            SourceLineList.add(data);
-            line = reader.readLine();
-        }
-        reader.close();
-    }
-
-    public ArrayList<SourceLineData> getSourceList() { return SourceLineList; }
-    
-    public SourceLineData getSourceLineData(int no)
-    {
-        return no<SourceLineList.size() ? SourceLineList.get(no) : null;
-    }
-
-    public String getSourceLine(int no)
-    {
-        SourceLineData sl = getSourceLineData(no);
-        return sl == null ? "" : sl.getCodeLine();
-    }
-
-    public Integer calcSourceLineLevel(int oldLevel, SourceLineData line)
-    {
-        String codeLine = line.getCodeLine().toLowerCase();
-        line.setLevel(oldLevel);
-        
-        if (codeLine.startsWith("function")
-             || codeLine.startsWith("sub")
-             || codeLine.startsWith("select case")
-             || (codeLine.startsWith("do") && !isDoLoopOneliner(codeLine))
-             || (codeLine.startsWith("for") && !isForNextOneliner(codeLine))
-             || (codeLine.startsWith("if") && !isIfThenOneliner(codeLine))) {
-            return oldLevel+1;
-            
-        } else if (codeLine.startsWith("else")
-             || codeLine.startsWith("case ")) {
-            line.setLevel(oldLevel-1);
-              
-        } else if (codeLine.startsWith("end function")
-             || codeLine.startsWith("end sub")
-             || codeLine.startsWith("end select")
-             || codeLine.startsWith("endif")
-             || codeLine.startsWith("next")
-             || codeLine.startsWith("loop")) {
-            line.setLevel(oldLevel-1);
-            return oldLevel-1;
-        }
-        
-        return oldLevel;
-    }
-
-    
-    public String getBasePath() { return basePath; }
-    public String getFilePath() { return filePath; }
-    public int getLastLineNo() { return SourceLineList.size()-1; }
+    public String getPath()              { return path;      }
+    public int    getFirstLine()         { return firstline; }
+    public void   setFirstLine(int line) { firstline = line; }
+    public int    getLastLine()          { return lastline;  }
+    public void   setLastLine(int line)  { lastline = line;  }
 }

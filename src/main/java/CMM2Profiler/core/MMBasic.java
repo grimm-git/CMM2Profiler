@@ -16,6 +16,7 @@
  */
 package CMM2Profiler.core;
 
+import java.util.Locale;
 import java.util.regex.Pattern;
 
 /**
@@ -27,21 +28,21 @@ public class MMBasic
 
     public static boolean isIfThenOneliner(String line)
     {
-        String code = stripComment(line).toUpperCase();
+        String code = stripComment(line).toUpperCase(Locale.US);
         String pattern = "^IF\\b.+\\bTHEN\\b.+";
         return Pattern.matches(pattern, code);
     }
 
     public static boolean isForNextOneliner(String line)
     {
-        String code = stripComment(line).toUpperCase();
+        String code = stripComment(line).toUpperCase(Locale.US);
         String pattern = "^FOR\\b.+\\bTO\\b.+\\bNEXT\\b.*";
         return Pattern.matches(pattern, code);
     }
 
     public static boolean isDoLoopOneliner(String line)
     {
-        String code = stripComment(line).toUpperCase();
+        String code = stripComment(line).toUpperCase(Locale.US);
         String pattern = "^DO\\b.*\\bLOOP\\b.*";
         return Pattern.matches(pattern, code);
     }
@@ -52,5 +53,5 @@ public class MMBasic
         if (idx != -1) return line.substring(0, idx).trim();
         return line.trim();
     }
-   
+
 }
