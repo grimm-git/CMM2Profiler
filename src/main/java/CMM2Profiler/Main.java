@@ -14,6 +14,7 @@ import javafx.stage.Stage;
 public class Main
 extends Application
 {
+
     @Override
     public void start(Stage stage) throws IOException
     {
@@ -33,5 +34,8 @@ extends Application
     public static void main(String[] args)
     {
         launch(args);       // start JavaFX Thread
+        
+        Registry Reg = Registry.get();
+        Reg.close();
     }
 }

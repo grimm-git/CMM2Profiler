@@ -17,7 +17,7 @@
  */
 package CMM2Profiler.gui;
 
-import CMM2Profiler.core.ObjectConverter;
+import CMM2Profiler.utils.ObjectConverter;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.control.Label;

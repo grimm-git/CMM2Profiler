@@ -28,6 +28,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.Locale;
 import java.util.Set;
 
 /**
@@ -100,7 +101,6 @@ public class Source
         FunctionList.clear();
         StructureMap.clear();
         SourceLines.clear();
-        codeLineNo=1;
        
         // handle main source file
         mainLines = loadSourceFile(base, path+".bas");  // load main source file
@@ -111,7 +111,7 @@ public class Source
         for (int n=0 ; n < mainLines ; n++) {
             String codeLine = SourceLines.get(n).getSource();
             if (codeLine.length() < 12) continue;
-            String temp = codeLine.substring(0, 8).toUpperCase();
+            String temp = codeLine.substring(0, 8).toUpperCase(Locale.US);
             if (temp.equals("#INCLUDE")) {
                 int a = codeLine.indexOf('"')+1;
                 int b = codeLine.indexOf('"', a);
@@ -125,25 +125,22 @@ public class Source
         
         loadProfilerLog(base,path+".csv");
         
-        lineno=0;
-        int linesRemoved=0;
+        lineno=-1;
         boolean catchNext=false;
         boolean lastWasEmpty=true;
         SourceLine curFunction=null;
         Iterator<SourceLine> iter=SourceLines.iterator();
 
+        int first=0, last=0;
         for (SourceFile srcFile : StructureMap.values()) {
-            int start=srcFile.getFirstLine()-linesRemoved;
-            int end=srcFile.getLastLine()-linesRemoved;
-            srcFile.setFirstLine(start);
+            last=first+srcFile.getLastLine()-srcFile.getFirstLine();
 
-            int deleted=0;
             while(iter.hasNext()) {
                 SourceLine srcLine = iter.next();
                 if (srcLine.getType()==SourceLine.Type.COMMENT
                   || (lastWasEmpty && srcLine.getType()==SourceLine.Type.EMPTY)) {
                     iter.remove();
-                    deleted++;
+                    --last;
                 } else {
                     lineno++;
                     lastWasEmpty = (srcLine.getType() == SourceLine.Type.EMPTY
@@ -166,10 +163,12 @@ public class Source
                         }
                     }
                 }
-                if (lineno >= end-deleted) break;
+                if (lineno >= last) break;
             }
-            srcFile.setLastLine(end-deleted);
-            linesRemoved += deleted;
+
+            srcFile.setFirstLine(first);
+            srcFile.setLastLine(last);
+            first=last+1;
         }
     }
 

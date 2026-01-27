@@ -19,14 +19,17 @@ package CMM2Profiler.gui;
 
 import CMM2Profiler.Defaults;
 import CMM2Profiler.core.Function;
-import CMM2Profiler.core.ObjectConverter;
+import CMM2Profiler.utils.ObjectConverter;
 import CMM2Profiler.core.SourceLine;
+import static CMM2Profiler.utils.ErrandFactory.execErrandLoadSource;
 import java.io.File;
 import java.io.IOException;
+import javafx.application.Platform;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
+import javafx.concurrent.WorkerStateEvent;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -34,6 +37,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.ScrollBar;
+import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeTableCell;
 import javafx.scene.control.TreeTableColumn;
 import javafx.scene.control.TreeTableView;
@@ -132,7 +136,21 @@ extends WindowFX
         listFunctions.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<Function>() {
                 @Override
                 public void changed(ObservableValue<? extends Function> ov, Function oldVal, Function newVal) {
-                   
+                   if (newVal != null) {
+                       SourceLine srcLine = newVal.getData();
+                       TreeItem<SourceLine> item = dataModel.findTreeItem(dataModel.getProfilerTree(), srcLine);
+                       if (item != null) {
+                           dataModel.expandToRoot(item);
+                            
+                           Platform.runLater(() -> {
+                                int row = SourceTree.getRow(item);
+                                if (row >= 0) {
+                                    SourceTree.scrollTo(row);
+                                    SourceTree.getSelectionModel().select(item);
+                                }
+                            });
+                       }
+                   }
                 }
             });
         
@@ -189,16 +207,8 @@ extends WindowFX
                 if (pos != -1) fileName=fileName.substring(0,pos);
                 dataModel.setProgramName(fileName+".bas");
             
-                try {
-                    dataModel.mainSource.load(filePath, fileName);
-                    dataModel.updateProfilerTree();
-                    SourceTree.setRoot(dataModel.getProfilerTree());
-                    SourceTree.setShowRoot(false);
-                    dataModel.updateFunctionList();
-                    
-                } catch (IOException ex) {
-                    showError(ex.getLocalizedMessage());
-                }
+                execErrandLoadSource(dataModel.mainSource, filePath, fileName,
+                        this::loadSourceSucceeded, this::taskFailed);
             }
             
         } else if (event.getSource() == miExit) {
@@ -300,7 +310,26 @@ extends WindowFX
         };
         return tableCell;
     };
-    
+
+    // ---------------------------------------------------------------------------------------- 
+    //                          task helper functions
+    // ---------------------------------------------------------------------------------------- 
+    private void loadSourceSucceeded(WorkerStateEvent ev)
+    {
+        dataModel.updateProfilerTree();
+        SourceTree.setRoot(dataModel.getProfilerTree());
+        SourceTree.setShowRoot(false);
+        dataModel.updateFunctionList();
+        showSuccess("Data successfully loaded!");
+    }
+
+    private void taskFailed(WorkerStateEvent ev)
+    {
+        Throwable ex = ev.getSource().getException();
+        String errormsg = ex == null ? "Loading of data failed!" : ex.getLocalizedMessage();
+        showError(errormsg);
+    }
+
     // ---------------------------------------------------------------------------------------- 
     //                          private inner class for CellFactory
     // ---------------------------------------------------------------------------------------- 

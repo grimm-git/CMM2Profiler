@@ -20,6 +20,7 @@ import CMM2Profiler.core.Function;
 import CMM2Profiler.core.Source;
 import CMM2Profiler.core.SourceFile;
 import CMM2Profiler.core.SourceLine;
+import java.util.ArrayList;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
@@ -41,7 +42,8 @@ public class MainWindowData
     
     protected Source mainSource = new Source();
     private TreeItem<SourceLine> treeRoot=null;
-
+    private ArrayList<TreeItem<SourceLine>> expandedItems = new ArrayList<>();
+        
     public MainWindowData()
     {
     }
@@ -99,6 +101,28 @@ public class MainWindowData
             }
         }
         treeRoot=root;
+    }
+
+    public TreeItem<SourceLine> findTreeItem (TreeItem<SourceLine> node, SourceLine target)
+    {
+        if (node.getValue() == target)
+            return node;
+
+        for (TreeItem<SourceLine> child : node.getChildren()) {
+            TreeItem<SourceLine> result = findTreeItem(child, target);
+            if (result != null) 
+                return result;
+        }
+        return null;
+    }
+
+    public void expandToRoot(TreeItem<SourceLine> item)
+    {
+        TreeItem<SourceLine> current = item.getParent();
+        while (current != null) {
+            current.setExpanded(true);
+            current = current.getParent();
+        }
     }
     
     /*
