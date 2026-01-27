@@ -73,10 +73,6 @@
     -fx-border-color: -fx-background -fx-background derive(-fx-base, -20%) -fx-background;
 }
 
-.scroll-pane > .viewport {
-   -fx-background-color: white;
-}
-
 .tooltip {
 -fx-text-fill: #333333;
 -fx-background-color:
@@ -89,89 +85,8 @@
 -fx-effect: dropshadow( three-pass-box , rgba(0,0,0,0.6) , 8, 0.0 , 0 , 0 );
 }
 
-.split-pane {
-    -fx-border-color: -fx-background;
-}
-
-.chart-series-line {    
-    -fx-stroke-width: 2px;
-    -fx-effect: dropshadow( gaussian, rgba(0,0,0,0.8), 8, 0.0, 2, 2);
-}
-.chart-body {
-    -fx-create-symbols: false;
-}
-.chart-content .chart-plot-background,
-.chart-body .chart-plot-background {
-    -fx-background-color: white;
-}
-.chart-with-symbols {
-    -fx-create-symbols: true !important;
-}
-.series0.chart-bar { -fx-bar-fill: #3A5199 !important; }  /* cobalt */
-.series1.chart-bar { -fx-bar-fill: #8D230F !important; }  /* crimson */
-.series2.chart-bar { -fx-bar-fill: #92AAC7 !important; }  /* Bluebell */
-.series3.chart-bar { -fx-bar-fill: #1E434C !important; }  /* forrest */
-.series4.chart-bar { -fx-bar-fill: #ab69cd !important; }  /* violett */
-.series5.chart-bar { -fx-bar-fill: #9B4F0F !important; }  /* Rust */
-.series6.chart-bar { -fx-bar-fill: #002C54 !important; }  /* Dusk */
-.series7.chart-bar { -fx-bar-fill: #C99E10 !important; }  /* Gold */
-                                     
-#linechart-capacity .chart-plot-background {
-    -fx-background-color: transparent;
-}
-#linechart-capacity .chart-horizontal-grid-lines,
-#linechart-capacity .chart-vertical-grid-lines {
-    -fx-stroke: transparent;
-}
-
-#category-highlighted {
-    -fx-fill: #0096c9;
-}
-#category-selected {
-    -fx-fill: #0096c9;
-}
-
-.chart-range-pane {
-    -fx-horizontal-range-control: bottom;
-    -fx-fit-to-width: false;
-}
-
-
-.chart-range-pane .scroll-bar {
-    -fx-background-color: null;
-}
-
-.chart-range-pane .scroll-bar:horizontal.limit .track {
-    -fx-background-image: url('hbar.png'); 
-    -fx-background-repeat: repeat-x;
-    -fx-background-position: center;  
-}
-.chart-range-pane .scroll-bar:horizontal.limit .thumb {
-    -fx-background-image: url('hhandle.png'); 
-    -fx-background-repeat: no-repeat;
-    -fx-background-position: center;  
-    -fx-background-color: null;
-}
-
-.chart-range-pane .scroll-bar:vertical.limit {
-    -fx-background-color: null;
-}
-
-.chart-range-pane .scroll-bar:vertical.limit .track {
-    -fx-background-image: url('vbar.png'); 
-    -fx-background-repeat: repeat-y;
-    -fx-background-position: center;  
-}
-.chart-range-pane .scroll-bar:vertical.limit .thumb {
-    -fx-background-image: url('vhandle.png'); 
-    -fx-background-repeat: no-repeat;
-    -fx-background-position: center;  
-    -fx-background-color: null;
-}
-
-
-.tick-label {
-    -fx-text-alignment:center !important;
+.progress-dialog {
+    -fx-graphic: url("../images/dialog-information.png");
 }
 
 /*

@@ -89,7 +89,7 @@
          <children>
             <TreeTableView fx:id="SourceTree" HBox.hgrow="ALWAYS">
               <columns>
-                <TreeTableColumn fx:id="colLine" editable="false" maxWidth="120.0" minWidth="80.0" prefWidth="100.0" sortable="false" text="Line" />
+                <TreeTableColumn fx:id="colLine" editable="false" maxWidth="100.0" minWidth="50.0" sortable="false" text="Line" />
                   <TreeTableColumn fx:id="colCalls" editable="false" maxWidth="150.0" prefWidth="75.0" sortable="false" text="Calls" />
                   <TreeTableColumn fx:id="colTime" editable="false" maxWidth="200.0" prefWidth="75.0" sortable="false" text="Time [ms]" />
                 <TreeTableColumn fx:id="colCode" editable="false" minWidth="300.0" prefWidth="400.0" sortable="false" text="Code" />
