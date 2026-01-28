@@ -70,11 +70,26 @@ public class Function
     /**
      * Default comparator for sorting a list of Functions by name.
      */
-    public final static Comparator<Function> Comparator = (Function o1, Function o2) -> {
+    public final static Comparator<Function> CompName = (Function o1, Function o2) -> {
         String name1 = o1.toString().toLowerCase(Locale.getDefault());
         String name2 = o2.toString().toLowerCase(Locale.getDefault());
         //ascending order
         return name1.compareTo(name2);
     };
 
+    public final static Comparator<Function> CompTime = (Function o1, Function o2) -> {
+        float time1 = o2.getData().getTime();
+        float time2 = o1.getData().getTime();
+        
+        //ascending order
+        return Float.compare(time1, time2);
+    };
+
+    public final static Comparator<Function> CompCalls = (Function o1, Function o2) -> {
+        int calls1 = o2.getData().getCalls();
+        int calls2 = o1.getData().getCalls();
+        
+        //ascending order
+        return Integer.compare(calls1, calls2);
+    };
 }

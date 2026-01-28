@@ -124,35 +124,7 @@ public class MainWindowData
             current = current.getParent();
         }
     }
-    
-    /*
-    public void calcRuntime(SourceFile source)
-    {
-        int idx=0;
-                
-        while (idx < source.getLastLineNo()) {
-            SourceLineData sl = source.getSourceLineData(idx);
-            String codeline=sl.getCodeLine().toLowerCase();
-            
-            if (codeline.startsWith("function ") || codeline.startsWith("sub")) {
-                
-            } else if (codeline.startsWith("if ") || codeline.startsWith("else if ")) {
-                
-            } else if (codeline.startsWith("else")) {
-                
-            } else if (codeline.startsWith("case")) {
-                
-            } else if (codeline.startsWith("for")) {
-                
-                // closed by next
-            } else if (codeline.startsWith("do")) {
-                
-                // closed by loop
-            }
-        }
-    }
-    */
-    
+        
     // -------------------------------------------------------------------------------- 
     //                                   Property Objects
     // -------------------------------------------------------------------------------- 

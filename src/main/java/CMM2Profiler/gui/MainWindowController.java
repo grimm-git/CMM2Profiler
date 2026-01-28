@@ -131,7 +131,7 @@ extends WindowFX
                                        .subtract(2));
        
         // Function List
-        listFunctions.setItems(dataModel.getFunctionList().sorted(Function.Comparator));
+        listFunctions.setItems(dataModel.getFunctionList().sorted(Function.CompTime));
         listFunctions.setCellFactory(LabelListCell.cellFactory(new FunctionConverter()));
         listFunctions.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<Function>() {
                 @Override

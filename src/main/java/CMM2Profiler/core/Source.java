@@ -152,14 +152,29 @@ public class Source
                         // for the first command in the function to get the real execution counter
                         curFunction=srcLine;
                         catchNext=true;
-                        
-                    } else if (catchNext) {
+                                                
+                    } else {
                         int calls = srcLine.getCalls();
-                        if (calls > 0 || srcLine.isEndFunction()) {
-                            // Here we copy the execution counter from the first
-                            // command in the function to the function itself.
-                            curFunction.setCalls(calls);
-                            catchNext=false;
+                        float time = srcLine.getTime();
+                        
+                        if (catchNext) {
+                            if (calls > 0 || srcLine.isEndFunction()) {
+                                // Here we copy the execution counter from the first
+                                // command in the function to the function itself.
+                                curFunction.setCalls(calls);
+                                catchNext=false;
+                            }
+                        }
+                        
+                        if (curFunction != null) {
+                            curFunction.addTime(time*calls);
+                        
+                            if (srcLine.isEndFunction()) {
+                                calls = curFunction.getCalls();
+                                time  = curFunction.getTime();
+                                curFunction.setTime(calls==0 ? 0 : time/calls);
+                                curFunction=null;
+                            }
                         }
                     }
                 }

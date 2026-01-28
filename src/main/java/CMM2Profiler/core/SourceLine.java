@@ -176,6 +176,7 @@ public class SourceLine
     public void setCalls(int calls) { lineCalls=calls; }
     public float getTime() { return lineTime; }
     public void setTime(float time) { lineTime=time; }
+    public void addTime(float time) { lineTime+=time; }
     public String getSource() { return Source; }
     public String getComment() { return Comment; }
     
