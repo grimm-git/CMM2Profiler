@@ -74,7 +74,8 @@ public class MainWindowData
         
         int idx=0;
         for (SourceFile srcFile : mainSource.getStructureMap()) {
-            header = SourceLine.createSourceHeader(idx++ == 0 ? "Main" : srcFile.getPath());
+            header = srcFile.getSource();
+//            header = SourceLine.createSourceHeader(idx++ == 0 ? "Main" : srcFile.getPath());
             TreeItem<SourceLine> include = new TreeItem<>(header);
             root.getChildren().add(include);
             

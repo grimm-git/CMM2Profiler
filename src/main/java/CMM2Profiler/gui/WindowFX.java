@@ -19,6 +19,7 @@ package CMM2Profiler.gui;
 
 import java.io.IOException;
 import java.net.URL;
+import javafx.event.EventHandler;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Orientation;
 import javafx.scene.Node;
@@ -31,6 +32,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
 import javafx.scene.control.TreeTableView;
 import javafx.scene.image.Image;
+import javafx.scene.input.MouseEvent;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.Window;
@@ -64,7 +66,10 @@ public abstract class WindowFX
       
         Scene scene = new Scene(root);
         scene.getStylesheets().add(getCSSResource(cssFile));
-
+        scene.addEventFilter(MouseEvent.MOUSE_PRESSED, (MouseEvent ev) -> {
+            clearMessage();
+        });
+        
         stage.setScene(scene);
         stage.sizeToScene();
         stage.setOnCloseRequest(ev -> this.close());

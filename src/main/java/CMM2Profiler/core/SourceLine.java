@@ -137,6 +137,11 @@ public class SourceLine
         return lineType==SourceLine.Type.EMPTY;
     }
 
+    public boolean isHeader()
+    {
+        return lineType==SourceLine.Type.HEADER;
+    }
+
     public boolean isFunction()
     {
         String tmp = Source.toLowerCase(Locale.US);

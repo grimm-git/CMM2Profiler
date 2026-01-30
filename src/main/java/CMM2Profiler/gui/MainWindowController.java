@@ -27,20 +27,24 @@ import java.io.IOException;
 import javafx.application.Platform;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
-import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
+import javafx.collections.ListChangeListener;
 import javafx.concurrent.WorkerStateEvent;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.control.ListView;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.ScrollBar;
+import javafx.scene.control.SelectionMode;
+import javafx.scene.control.TableCell;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeTableCell;
 import javafx.scene.control.TreeTableColumn;
 import javafx.scene.control.TreeTableView;
+import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.control.cell.TreeItemPropertyValueFactory;
 import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
@@ -71,10 +75,14 @@ extends WindowFX
     @FXML  private TreeTableColumn<SourceLine, String> colCode;
     @FXML  private TreeTableColumn<SourceLine, String> colComment;
 
-    @FXML  private ListView<Function> listFunctions;
+    @FXML  private TableView<Function> tableFunctions;
+    @FXML  private TableColumn<Function, String> colFuncName;
+    @FXML  private TableColumn<Function, Integer> colFuncCalls;
+    @FXML  private TableColumn<Function, Float> colFuncTime;
     
     private final MainWindowData dataModel;
     private final DoubleProperty treeTableBarWidthProperty = new SimpleDoubleProperty();
+    private final DoubleProperty functionTableBarWidthProperty = new SimpleDoubleProperty();
 
     public MainWindowController(Stage stage) throws IOException
     {
@@ -130,42 +138,65 @@ extends WindowFX
                                        .subtract(treeTableBarWidthProperty)
                                        .subtract(2));
        
-        // Function List
-        listFunctions.setItems(dataModel.getFunctionList().sorted(Function.CompTime));
-        listFunctions.setCellFactory(LabelListCell.cellFactory(new FunctionConverter()));
-        listFunctions.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<Function>() {
-                @Override
-                public void changed(ObservableValue<? extends Function> ov, Function oldVal, Function newVal) {
-                   if (newVal != null) {
-                       SourceLine srcLine = newVal.getData();
-                       TreeItem<SourceLine> item = dataModel.findTreeItem(dataModel.getProfilerTree(), srcLine);
-                       if (item != null) {
-                           dataModel.expandToRoot(item);
-                            
-                           Platform.runLater(() -> {
-                                int row = SourceTree.getRow(item);
-                                if (row >= 0) {
-                                    SourceTree.scrollTo(row);
-                                    SourceTree.getSelectionModel().select(item);
-                                }
-                            });
-                       }
-                   }
-                }
-            });
+        colFuncName.setCellValueFactory(new PropertyValueFactory<>("Name"));
+        colFuncName.setCellFactory(TableCellLabel.cellFactory(new FunctionConverter()));
+        colFuncName.getStyleClass().add("column-align-left");
         
+        colFuncCalls.setCellValueFactory(new PropertyValueFactory<>("Calls"));
+        colFuncCalls.setCellFactory(formatCellInt);
+        colFuncCalls.getStyleClass().add("column-align-right");
+        colFuncCalls.setSortable(true);
+        
+        colFuncTime.setCellValueFactory(new PropertyValueFactory<>("Time"));
+        colFuncTime.setCellFactory(formatCellFloat);
+        colFuncTime.getStyleClass().add("column-align-right");
+        colFuncName.prefWidthProperty().bind(tableFunctions.widthProperty()
+                                       .subtract(colFuncCalls.widthProperty())
+                                       .subtract(colFuncTime.widthProperty())
+                                       .subtract(functionTableBarWidthProperty)
+                                       .subtract(2));
+
+        tableFunctions.setItems(dataModel.getFunctionList());
+        tableFunctions.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
+        tableFunctions.getSelectionModel().setCellSelectionEnabled(false);
+        tableFunctions.getSelectionModel().getSelectedItems().addListener(new ListChangeListener<Function>() {
+                @Override
+                public void onChanged(Change<? extends Function> change) {
+                    while (change.next()) {
+                        for (Function func : change.getAddedSubList()) {
+                            SourceLine srcLine = func.getData();
+                            TreeItem<SourceLine> item = dataModel.findTreeItem(dataModel.getProfilerTree(), srcLine);
+                            
+                            if (item != null) {
+                                dataModel.expandToRoot(item);
+                            
+                                Platform.runLater(() -> {
+                                    int row = SourceTree.getRow(item);
+                                    if (row >= 0) {
+                                        SourceTree.scrollTo(row);
+                                        SourceTree.getSelectionModel().select(item);
+                                    }});
+                            }
+                        }
+                    }
+                }});
         
         stage.setOnShown(ev -> {
-            final ScrollBar bar = getVerticalScrollbar(SourceTree);
-            if (bar != null) {
-                treeTableBarWidthProperty.set(bar.visibleProperty().get() ? bar.getWidth() : 0);
-                bar.visibleProperty().addListener((obs, oldVal, newVal) -> {  
-                    treeTableBarWidthProperty.set(newVal ? bar.getWidth() : 0);
-                });
-            }
+            adjustTableWidth(getVerticalScrollbar(SourceTree), treeTableBarWidthProperty);
+            adjustTableWidth(getVerticalScrollbar(tableFunctions), functionTableBarWidthProperty);
         });
     }
+
+    private void adjustTableWidth(ScrollBar bar, DoubleProperty width)
+    {
+        if (bar == null) return;
         
+        width.set(bar.visibleProperty().get() ? bar.getWidth() : 0);
+        bar.visibleProperty().addListener((obs, oldVal, newVal) -> {  
+                width.set(newVal ? bar.getWidth() : 0);
+            });
+    }
+    
     // ---------------------------------------------------------------------------------------- 
     //                                      FXML GUI handler
     // ---------------------------------------------------------------------------------------- 
@@ -187,7 +218,7 @@ extends WindowFX
             for (int n = 0; n < str.length(); n++) {
                 char c = str.charAt(n);
                 if (Character.isLetterOrDigit(c) || " -_()".indexOf(c) >= 0) {
-                    errorMsg.setText("");
+                    clearMessage();
                 }
             }
         }
@@ -233,6 +264,44 @@ extends WindowFX
         return selectedFile;
     }
 
+    
+    /**
+     * Callbacks to format table cells
+     */
+    private Callback<TableColumn<Function, Integer>, TableCell<Function, Integer>> formatCellInt = (tableColumn) -> {
+        TableCell<Function, Integer> tableCell = new TableCell<>() {
+            @Override
+            protected void updateItem(Integer item, boolean empty) {
+                super.updateItem(item, empty);
+                this.setText(null);
+                this.setGraphic(null);
+
+                Function func = this.getTableRow().getItem();
+                if (empty || item==null || func==null) return;
+
+                this.setText(String.format("%d", item));
+            }
+        };
+        return tableCell;
+    };
+
+    private Callback<TableColumn<Function, Float>, TableCell<Function, Float>> formatCellFloat = (tableColumn) -> {
+        TableCell<Function, Float> tableCell = new TableCell<>() {
+            @Override
+            protected void updateItem(Float item, boolean empty) {
+                super.updateItem(item, empty);
+                this.setText(null);
+                this.setGraphic(null);
+
+                Function func = this.getTableRow().getItem();
+                if (empty || item==null || func==null) return;
+
+                this.setText(String.format("%.3f", item/1000));
+            }
+        };
+        return tableCell;
+    };
+    
     /**
      * Tree table callbacks to format tree table cells
      */
@@ -265,7 +334,7 @@ extends WindowFX
                 SourceLine srcLine = this.getTableRow().getItem();
                 if (empty || item==null || srcLine==null) return;
                 
-                if (srcLine.isCodeLine())
+                if (srcLine.isCodeLine() || srcLine.isHeader())
                     this.setText(String.format("%d", item));
             }
         };
@@ -283,7 +352,7 @@ extends WindowFX
                 SourceLine srcLine = this.getTableRow().getItem();
                 if (empty || item==null || srcLine==null) return;
 
-                if (srcLine.isCodeLine())
+                if (srcLine.isCodeLine() || srcLine.isHeader())
                     this.setText(String.format("%.3f", item/1000));
             }
         };

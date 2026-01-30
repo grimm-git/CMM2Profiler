@@ -128,16 +128,20 @@ public class Source
         lineno=-1;
         boolean catchNext=false;
         boolean lastWasEmpty=true;
+        SourceLine includeFile=null;
         SourceLine curFunction=null;
         Iterator<SourceLine> iter=SourceLines.iterator();
 
         int first=0, last=0;
         for (SourceFile srcFile : StructureMap.values()) {
             last=first+srcFile.getLastLine()-srcFile.getFirstLine();
-
+            includeFile = srcFile.getSource();
+            curFunction = srcFile.getSource();
+            
             while(iter.hasNext()) {
                 SourceLine srcLine = iter.next();
                 if (srcLine.getType()==SourceLine.Type.COMMENT
+                  || srcLine.getSource().toLowerCase(Locale.US).startsWith("#include")
                   || (lastWasEmpty && srcLine.getType()==SourceLine.Type.EMPTY)) {
                     iter.remove();
                     --last;
@@ -173,7 +177,8 @@ public class Source
                                 calls = curFunction.getCalls();
                                 time  = curFunction.getTime();
                                 curFunction.setTime(calls==0 ? 0 : time/calls);
-                                curFunction=null;
+                                curFunction=includeFile;
+                                curFunction.addTime(time);
                             }
                         }
                     }

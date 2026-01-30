@@ -59,6 +59,8 @@ public class Function
     
     public void setName(String funcname)    { name = funcname; }
     public String getName()                 { return name; }
+    public int getCalls()                   { return data.getCalls(); }
+    public float getTime()                  { return data.getTime(); }
     public void setData(SourceLine srcLine) { data = srcLine; }
     public SourceLine getData()             { return data; }
     public boolean isSub()                  { return type==Type.SUB; }

@@ -25,12 +25,14 @@ public class SourceFile
     private final String path;
     private int firstline;    // in full source context
     private int lastline;
+    private SourceLine source;
        
-    public SourceFile(String path, int first, int last)
+    public SourceFile(String filePath, int first, int last)
     {
-        this.path=path;
-        this.firstline=first;
-        this.lastline=last;
+        path = filePath;
+        firstline = first;
+        lastline = last;
+        source = SourceLine.createSourceHeader(path);
     }
     
     public String getPath()              { return path;      }
@@ -38,4 +40,5 @@ public class SourceFile
     public void   setFirstLine(int line) { firstline = line; }
     public int    getLastLine()          { return lastline;  }
     public void   setLastLine(int line)  { lastline = line;  }
+    public SourceLine getSource()        { return source;    }
 }
