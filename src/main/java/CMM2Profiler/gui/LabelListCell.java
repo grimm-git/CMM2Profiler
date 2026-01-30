@@ -23,7 +23,6 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
-import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.util.Callback;
 
@@ -54,7 +53,7 @@ extends ListCell<T>
 
     Label label;
 
-    private ObjectProperty<ObjectConverter<T>> converter =
+    private final ObjectProperty<ObjectConverter<T>> converter =
             new SimpleObjectProperty<>(this, "converter");
 
     /**
@@ -92,35 +91,26 @@ extends ListCell<T>
     public void updateItem(T item, boolean empty)
     {
         super.updateItem(item, empty);
+        setText(null);
+        setGraphic(null);   
 
-        if (empty || item == null) {
-            setText(null);
-            setGraphic(null);   
+        this.getStyleClass().remove("label-cell-highlight");
 
+        if (empty || item == null) return;
+
+        ObjectConverter<T> converter = getConverter();
+        if (converter == null) {
+            label.setText(item.toString());
+            
         } else {
-            Image img = getItemImg(item, getConverter());
-            label.setGraphic(img == null ? null : new ImageView(img));
-            label.setText(getItemText(item, getConverter()));
+            label.setGraphic(new ImageView(converter.getImage(item)));
+            label.setText(converter.getString(item));
             
-            this.getStyleClass().remove("label-cell-highlight");
-            if (isItemHighlighted(item, getConverter()))
+            if (converter.isHighlighted(item))
                 this.getStyleClass().add("label-cell-highlight");
-            
-            setGraphic(label);
-            setText(null);
         }
+         
+        setGraphic(label);
+        setText(null);
    }
- 
-    private <T> String getItemText(T item, ObjectConverter<T> converter) {
-        return converter == null ?
-            item == null ? "" : item.toString() : converter.getString(item);
-    }
-
-    private <T> Image getItemImg(T item, ObjectConverter<T> converter) {
-        return converter == null ? null : converter.getImage(item);
-    }
-
-    private <T> boolean isItemHighlighted(T item, ObjectConverter<T> converter) {
-        return converter == null ? null : converter.isHighlighted(item);
-    }
 }
