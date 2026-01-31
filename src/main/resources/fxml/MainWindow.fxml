@@ -6,10 +6,12 @@
 <?import javafx.scene.control.Menu?>
 <?import javafx.scene.control.MenuBar?>
 <?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.RadioButton?>
 <?import javafx.scene.control.Separator?>
 <?import javafx.scene.control.SplitPane?>
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.ToggleGroup?>
 <?import javafx.scene.control.TreeTableColumn?>
 <?import javafx.scene.control.TreeTableView?>
 <?import javafx.scene.image.Image?>
@@ -86,15 +88,108 @@
       </HBox>
       <SplitPane dividerPositions="0.75">
          <items>
-            <TreeTableView fx:id="SourceTree">
-              <columns>
-                <TreeTableColumn fx:id="colLine" editable="false" maxWidth="100.0" minWidth="50.0" sortable="false" text="Line" />
-                  <TreeTableColumn fx:id="colCalls" editable="false" maxWidth="150.0" prefWidth="75.0" sortable="false" text="Calls" />
-                  <TreeTableColumn fx:id="colTime" editable="false" maxWidth="200.0" prefWidth="75.0" sortable="false" text="Time [ms]" />
-                <TreeTableColumn fx:id="colCode" editable="false" minWidth="300.0" prefWidth="400.0" sortable="false" text="Code" />
-                  <TreeTableColumn fx:id="colComment" editable="false" minWidth="200.0" prefWidth="300.0" sortable="false" text="Comments" />
-              </columns>
-            </TreeTableView>
+            <VBox>
+               <children>
+                  <TreeTableView fx:id="SourceTree">
+                    <columns>
+                      <TreeTableColumn fx:id="colLine" editable="false" maxWidth="100.0" minWidth="50.0" sortable="false" text="Code Line" />
+                        <TreeTableColumn fx:id="colCalls" editable="false" maxWidth="150.0" prefWidth="75.0" sortable="false" text="Calls" />
+                        <TreeTableColumn fx:id="colTime" editable="false" maxWidth="200.0" prefWidth="75.0" sortable="false" text="Time [ms]" />
+                      <TreeTableColumn fx:id="colCode" editable="false" minWidth="300.0" prefWidth="400.0" sortable="false" text="Code" />
+                        <TreeTableColumn fx:id="colComment" editable="false" minWidth="200.0" prefWidth="300.0" sortable="false" text="Comments" />
+                    </columns>
+                  </TreeTableView>
+                  <HBox>
+                     <children>
+                        <VBox>
+                           <children>
+                              <HBox alignment="TOP_CENTER">
+                                 <children>
+                                    <Label text="Source Time">
+                                       <font>
+                                          <Font name="System Bold" size="13.0" />
+                                       </font>
+                                    </Label>
+                                 </children>
+                                 <opaqueInsets>
+                                    <Insets />
+                                 </opaqueInsets>
+                                 <padding>
+                                    <Insets bottom="2.0" />
+                                 </padding>
+                              </HBox>
+                              <RadioButton fx:id="radioST_S" mnemonicParsing="false" selected="true" text="seconds">
+                                 <VBox.margin>
+                                    <Insets bottom="2.0" top="2.0" />
+                                 </VBox.margin>
+                                 <toggleGroup>
+                                    <ToggleGroup fx:id="groupSourceTime" />
+                                 </toggleGroup>
+                              </RadioButton>
+                              <RadioButton fx:id="radioST_M" mnemonicParsing="false" text="ms" toggleGroup="$groupSourceTime">
+                                 <VBox.margin>
+                                    <Insets bottom="2.0" top="2.0" />
+                                 </VBox.margin>
+                              </RadioButton>
+                              <RadioButton fx:id="radioST_U" mnemonicParsing="false" text="µs" toggleGroup="$groupSourceTime">
+                                 <VBox.margin>
+                                    <Insets bottom="2.0" top="2.0" />
+                                 </VBox.margin>
+                              </RadioButton>
+                           </children>
+                           <padding>
+                              <Insets bottom="4.0" left="4.0" right="4.0" top="4.0" />
+                           </padding>
+                        </VBox>
+                        <Separator orientation="VERTICAL" />
+                        <HBox alignment="TOP_CENTER" HBox.hgrow="ALWAYS">
+                           <opaqueInsets>
+                              <Insets />
+                           </opaqueInsets>
+                           <padding>
+                              <Insets bottom="2.0" />
+                           </padding>
+                        </HBox>
+                        <Separator orientation="VERTICAL" />
+                        <VBox>
+                           <children>
+                              <HBox alignment="TOP_CENTER">
+                                 <children>
+                                    <Label text="Function Time">
+                                       <font>
+                                          <Font name="System Bold" size="13.0" />
+                                       </font>
+                                    </Label>
+                                 </children>
+                                 <padding>
+                                    <Insets bottom="2.0" top="2.0" />
+                                 </padding>
+                              </HBox>
+                              <RadioButton fx:id="radioFT_M" mnemonicParsing="false" selected="true" text="ms">
+                                 <VBox.margin>
+                                    <Insets bottom="2.0" top="2.0" />
+                                 </VBox.margin>
+                                 <toggleGroup>
+                                    <ToggleGroup fx:id="groupFunctionTime" />
+                                 </toggleGroup>
+                              </RadioButton>
+                              <RadioButton fx:id="radioFT_U" mnemonicParsing="false" text="µs" toggleGroup="$groupFunctionTime">
+                                 <VBox.margin>
+                                    <Insets bottom="2.0" top="2.0" />
+                                 </VBox.margin>
+                              </RadioButton>
+                           </children>
+                           <HBox.margin>
+                              <Insets />
+                           </HBox.margin>
+                           <padding>
+                              <Insets bottom="4.0" left="4.0" right="4.0" top="4.0" />
+                           </padding>
+                        </VBox>
+                     </children>
+                  </HBox>
+               </children>
+            </VBox>
             <TableView fx:id="tableFunctions">
               <columns>
                 <TableColumn fx:id="colFuncName" editable="false" minWidth="50.0" prefWidth="150.0" text="Function" />

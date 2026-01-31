@@ -35,11 +35,14 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.RadioButton;
 import javafx.scene.control.ScrollBar;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import javafx.scene.control.Toggle;
+import javafx.scene.control.ToggleGroup;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeTableCell;
 import javafx.scene.control.TreeTableColumn;
@@ -79,6 +82,16 @@ extends WindowFX
     @FXML  private TableColumn<Function, String> colFuncName;
     @FXML  private TableColumn<Function, Integer> colFuncCalls;
     @FXML  private TableColumn<Function, Float> colFuncTime;
+    
+    @FXML  private ToggleGroup groupSourceTime;
+    @FXML  private RadioButton radioST_S;
+    @FXML  private RadioButton radioST_M;
+    @FXML  private RadioButton radioST_U;
+
+    @FXML  private ToggleGroup groupFunctionTime;
+    @FXML  private RadioButton radioFT_M;
+    @FXML  private RadioButton radioFT_U;
+    
     
     private final MainWindowData dataModel;
     private final DoubleProperty treeTableBarWidthProperty = new SimpleDoubleProperty();
@@ -185,6 +198,9 @@ extends WindowFX
             adjustTableWidth(getVerticalScrollbar(SourceTree), treeTableBarWidthProperty);
             adjustTableWidth(getVerticalScrollbar(tableFunctions), functionTableBarWidthProperty);
         });
+        
+        groupSourceTime.selectedToggleProperty().addListener(this::handleSourceTime);
+        groupFunctionTime.selectedToggleProperty().addListener(this::handleFunctionTime);
     }
 
     private void adjustTableWidth(ScrollBar bar, DoubleProperty width)
@@ -251,7 +267,33 @@ extends WindowFX
             ctrl.show();
         }
     }
-
+    
+    protected void handleSourceTime(ObservableValue<? extends Toggle> observable,
+                                       Toggle oldBtn, Toggle newBtn) {
+        if (newBtn == radioST_S) {
+            colTime.setText("Time [s]");
+            dataModel.setSourceTimeScaler(1);
+        } else if (newBtn == radioST_M) {
+            colTime.setText("Time [ms]");
+            dataModel.setSourceTimeScaler(2);
+        } else if (newBtn == radioST_U) {
+            colTime.setText("Time [µs]");
+            dataModel.setSourceTimeScaler(3);
+        }
+        SourceTree.refresh();
+    }
+    protected void handleFunctionTime(ObservableValue<? extends Toggle> observable,
+                                       Toggle oldBtn, Toggle newBtn) {
+        if (newBtn == radioFT_M) {
+            colFuncTime.setText("Time [ms]");
+            dataModel.setFunctionTimeScaler(2);
+        } else if (newBtn == radioFT_U) {
+            colFuncTime.setText("Time [µs]");
+            dataModel.setFunctionTimeScaler(3);
+        }
+        tableFunctions.refresh();
+    }
+    
     public File loadDialog(String title)
     {
         FileChooser fileChooser = new FileChooser();
@@ -296,7 +338,14 @@ extends WindowFX
                 Function func = this.getTableRow().getItem();
                 if (empty || item==null || func==null) return;
 
-                this.setText(String.format("%.3f", item/1000));
+                switch (dataModel.getFunctionTimeScaler()) {
+                    case 2:
+                        this.setText(String.format("%.2f", item/1000));
+                        break;
+                    case 3:
+                        this.setText(String.format("%.0f", item));
+                        break;
+                }
             }
         };
         return tableCell;
@@ -351,9 +400,20 @@ extends WindowFX
 
                 SourceLine srcLine = this.getTableRow().getItem();
                 if (empty || item==null || srcLine==null) return;
-
-                if (srcLine.isCodeLine() || srcLine.isHeader())
-                    this.setText(String.format("%.3f", item/1000));
+                
+                if (srcLine.isCodeLine() || srcLine.isHeader()) {
+                    switch (dataModel.getSourceTimeScaler()) {
+                        case 1:
+                            this.setText(String.format("%.3f", item/1000000));
+                            break;
+                        case 2:
+                            this.setText(String.format("%.2f", item/1000));
+                            break;
+                        case 3:
+                            this.setText(String.format("%.0f", item));
+                            break;
+                    }
+                }
             }
         };
         return tableCell;

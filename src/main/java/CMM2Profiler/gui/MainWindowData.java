@@ -21,6 +21,8 @@ import CMM2Profiler.core.Source;
 import CMM2Profiler.core.SourceFile;
 import CMM2Profiler.core.SourceLine;
 import java.util.ArrayList;
+import javafx.beans.property.DoubleProperty;
+import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
@@ -44,12 +46,23 @@ public class MainWindowData
     private TreeItem<SourceLine> treeRoot=null;
     private ArrayList<TreeItem<SourceLine>> expandedItems = new ArrayList<>();
         
+    private int SourceTimeScaler;
+    private int FunctionTimeScaler;
+    
     public MainWindowData()
     {
+        SourceTimeScaler = 1;
+        FunctionTimeScaler = 2;
     }
+
+    public String getProgramName()            { return programName.get(); }
+    public void   setProgramName(String name) { programName.set(name); }
     
-    public String getProgramName() { return programName.get(); }
-    public void setProgramName(String name) { programName.set(name); }
+    public int    getSourceTimeScaler()          { return SourceTimeScaler; }
+    public void   setSourceTimeScaler(int scale) { SourceTimeScaler = scale; }
+
+    public int    getFunctionTimeScaler()          { return FunctionTimeScaler; }
+    public void   setFunctionTimeScaler(int scale) { FunctionTimeScaler = scale; }
 
     /**
      * Convinience Functions to access data model of Function List GUI element
