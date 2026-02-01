@@ -30,6 +30,8 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * This class handles the source code of a MMBasic program.
@@ -91,23 +93,25 @@ public class Source
     
     public void load(String base, String path) throws IOException
     {
-        SourceFile src;
-        int mainLines;
-        int lineno;
-
         basePath=base;
 
-        // Initialize Source for new code
         FunctionList.clear();
         StructureMap.clear();
         SourceLines.clear();
        
-        // handle main source file
-        mainLines = loadSourceFile(base, path+".bas");  // load main source file
-        src=new SourceFile(path,0,mainLines-1);
+        loadFullSource(base, path+".bas");
+        loadProfilerLog(base,path+".csv");
+        cleanupSourceLines();
+        extractFunctionReferences();
+    }
+    
+    private void loadFullSource(String base, String path) throws IOException
+    {
+        int mainLines = loadSourceFile(base, path);  // load main source file
+        SourceFile src=new SourceFile(path,0,mainLines-1);
         StructureMap.put("Main Program", src);
         
-        lineno=mainLines;
+        int lineno=mainLines;
         for (int n=0 ; n < mainLines ; n++) {
             String codeLine = SourceLines.get(n).getSource();
             if (codeLine.length() < 12) continue;
@@ -122,10 +126,91 @@ public class Source
                 lineno += cnt;
             }
         }
+    }
+    
+    public int loadSourceFile(String base, String path) throws IOException
+    {
+        BufferedReader reader;
+        String line;
+        int level=0;
+        int cnt=0;
+
+        File fh=new File(base, path);
+        InputStream iStream = new FileInputStream(fh);    
+        reader = new BufferedReader(new InputStreamReader(iStream));
+          
+        line = reader.readLine();
+        while (line != null) {
+            SourceLine srcLine = new SourceLine(line);
+            level = srcLine.setLevel(level);
+            codeLineNo = srcLine.setLineNo(codeLineNo);
+            SourceLines.add(srcLine);
+            cnt++;
+            
+            line = reader.readLine();
+        }
+        reader.close();
+        return cnt;
+    }
+ 
+    private void loadProfilerLog(String base, String path) throws IOException
+    {
+        BufferedReader reader;
+        String line;
+        String name;
+        String[] parts;
+        int lineno;
         
-        loadProfilerLog(base,path+".csv");
+        File fh=new File(base, path);
+        InputStream iStream = new FileInputStream(fh);
+        reader = new BufferedReader(new InputStreamReader(iStream));
+            
+        // Read header and verify file format
+        line = reader.readLine();
+        if (line.charAt(0)=='/') line=line.substring(1);
+        parts = line.split("/");
+        if (parts.length != 3) throw new IOException("Bad file format");
+        if (!parts[2].endsWith(".bas")) throw new IOException("Bad file format");
+
+        line = reader.readLine();
+        while (line != null) {
+            parts = line.split(",");
+            name = parts[parts.length-2];
+            if (name.isEmpty()) name="Main Program";
+            SourceFile obj=StructureMap.get(name);
+            if (obj == null) throw new IOException("unknown source file \""+name+"\"");
+            
+            lineno = convertInt(parts[parts.length-1])-1;
+            lineno += obj.getFirstLine();
+            
+            SourceLine source = getSourceLine(lineno);
+            source.setCalls(convertInt(parts[0]));
+            source.setTime(convertFloat(parts[1]));
+
+            line = reader.readLine();
+        }
+        reader.close();
+    }
+    
+    private void extractFunctionReferences()
+    {
+        for (Function func : FunctionList) {
+            String name = func.getName().toLowerCase(Locale.US);
+            for (SourceLine srcLine : SourceLines) {
+                if (srcLine == func.getData()) continue;
+                
+                Pattern regex = Pattern.compile(Pattern.quote(name));
+                Matcher m = regex.matcher(srcLine.getSource().toLowerCase(Locale.US));
         
-        lineno=-1;
+                if (m.find())
+                   func.addReference(srcLine);
+            }
+        }
+    }
+    
+    private void cleanupSourceLines()
+    {
+        int lineno=-1;
         boolean catchNext=false;
         boolean lastWasEmpty=true;
         SourceLine includeFile=null;
@@ -190,70 +275,6 @@ public class Source
             srcFile.setLastLine(last);
             first=last+1;
         }
-    }
-
-    public int loadSourceFile(String base, String path) throws IOException
-    {
-        BufferedReader reader;
-        String line;
-        int level=0;
-        int cnt=0;
-
-        File fh=new File(base, path);
-        InputStream iStream = new FileInputStream(fh);    
-        reader = new BufferedReader(new InputStreamReader(iStream));
-          
-        line = reader.readLine();
-        while (line != null) {
-            SourceLine srcLine = new SourceLine(line);
-            level = srcLine.setLevel(level);
-            codeLineNo = srcLine.setLineNo(codeLineNo);
-            SourceLines.add(srcLine);
-            cnt++;
-            
-            line = reader.readLine();
-        }
-        reader.close();
-        return cnt;
-    }
- 
-    private void loadProfilerLog(String base, String path) throws IOException
-    {
-        BufferedReader reader;
-        String line;
-        String name;
-        String[] parts;
-        int lineno;
-        
-        File fh=new File(base, path);
-        InputStream iStream = new FileInputStream(fh);
-        reader = new BufferedReader(new InputStreamReader(iStream));
-            
-        // Read header and verify file format
-        line = reader.readLine();
-        if (line.charAt(0)=='/') line=line.substring(1);
-        parts = line.split("/");
-        if (parts.length != 3) throw new IOException("Bad file format");
-        if (!parts[2].endsWith(".bas")) throw new IOException("Bad file format");
-
-        line = reader.readLine();
-        while (line != null) {
-            parts = line.split(",");
-            name = parts[parts.length-2];
-            if (name.isEmpty()) name="Main Program";
-            SourceFile obj=StructureMap.get(name);
-            if (obj == null) throw new IOException("unknown source file \""+name+"\"");
-            
-            lineno = convertInt(parts[parts.length-1])-1;
-            lineno += obj.getFirstLine();
-            
-            SourceLine source = getSourceLine(lineno);
-            source.setCalls(convertInt(parts[0]));
-            source.setTime(convertFloat(parts[1]));
-
-            line = reader.readLine();
-        }
-        reader.close();
     }
     
     private int convertInt(String number)

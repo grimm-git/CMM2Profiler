@@ -16,6 +16,7 @@
  */
 package CMM2Profiler.core;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Locale;
 
@@ -30,6 +31,7 @@ public class Function
     private Type type;
     private String name;
     private SourceLine data;
+    private final ArrayList<SourceLine> references = new ArrayList<>();
     
     public Function()
     {
@@ -57,6 +59,17 @@ public class Function
         return name;
     }
     
+    public ArrayList<SourceLine> getReferenceList()
+    {
+        return references;
+    }
+    
+    public void addReference(SourceLine ref)
+    {
+        if (!references.contains(ref))
+            references.add(ref);
+    }
+    
     public void setName(String funcname)    { name = funcname; }
     public String getName()                 { return name; }
     public int getCalls()                   { return data.getCalls(); }
@@ -65,6 +78,7 @@ public class Function
     public SourceLine getData()             { return data; }
     public boolean isSub()                  { return type==Type.SUB; }
     public boolean isFunction()             { return type==Type.FUNCTION; }
+    public int getRefs()                    { return references.size(); }
     
     // ----------------------------------------------------------------------------------- 
     //                               Static class contents

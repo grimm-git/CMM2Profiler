@@ -82,6 +82,7 @@ extends WindowFX
     @FXML  private TableColumn<Function, String> colFuncName;
     @FXML  private TableColumn<Function, Integer> colFuncCalls;
     @FXML  private TableColumn<Function, Float> colFuncTime;
+    @FXML  private TableColumn<Function, Integer> colFuncRefs;
     
     @FXML  private ToggleGroup groupSourceTime;
     @FXML  private RadioButton radioST_S;
@@ -163,8 +164,15 @@ extends WindowFX
         colFuncTime.setCellValueFactory(new PropertyValueFactory<>("Time"));
         colFuncTime.setCellFactory(formatCellFloat);
         colFuncTime.getStyleClass().add("column-align-right");
+
+        colFuncRefs.setCellValueFactory(new PropertyValueFactory<>("Refs"));
+        colFuncRefs.setCellFactory(formatCellInt);
+        colFuncRefs.getStyleClass().add("column-align-right");
+        colFuncRefs.setSortable(true);
+
         colFuncName.prefWidthProperty().bind(tableFunctions.widthProperty()
                                        .subtract(colFuncCalls.widthProperty())
+                                       .subtract(colFuncRefs.widthProperty())
                                        .subtract(colFuncTime.widthProperty())
                                        .subtract(functionTableBarWidthProperty)
                                        .subtract(2));
@@ -176,12 +184,20 @@ extends WindowFX
                 @Override
                 public void onChanged(Change<? extends Function> change) {
                     while (change.next()) {
+                        for (Function func : change.getRemoved()) {
+                            final SourceLine srcLine = func.getData();
+                            final TreeItem<SourceLine> item = dataModel.findTreeItem(dataModel.getProfilerTree(), srcLine);
+                            
+                            if (item != null)
+                                dataModel.expandBranch(item, false);
+                        }
+                        
                         for (Function func : change.getAddedSubList()) {
-                            SourceLine srcLine = func.getData();
-                            TreeItem<SourceLine> item = dataModel.findTreeItem(dataModel.getProfilerTree(), srcLine);
+                            final SourceLine srcLine = func.getData();
+                            final TreeItem<SourceLine> item = dataModel.findTreeItem(dataModel.getProfilerTree(), srcLine);
                             
                             if (item != null) {
-                                dataModel.expandToRoot(item);
+                                dataModel.expandBranch(item, true);
                             
                                 Platform.runLater(() -> {
                                     int row = SourceTree.getRow(item);

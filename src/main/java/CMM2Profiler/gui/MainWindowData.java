@@ -130,15 +130,16 @@ public class MainWindowData
         return null;
     }
 
-    public void expandToRoot(TreeItem<SourceLine> item)
+    public void expandBranch(TreeItem<SourceLine> item, boolean expand)
     {
+        item.setExpanded(expand);
         TreeItem<SourceLine> current = item.getParent();
         while (current != null) {
-            current.setExpanded(true);
+            current.setExpanded(expand);
             current = current.getParent();
         }
     }
-        
+    
     // -------------------------------------------------------------------------------- 
     //                                   Property Objects
     // -------------------------------------------------------------------------------- 

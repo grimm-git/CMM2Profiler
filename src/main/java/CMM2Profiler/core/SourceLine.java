@@ -18,6 +18,8 @@ package CMM2Profiler.core;
 
 import static CMM2Profiler.core.MMBasic.*;
 import java.util.Locale;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * This class stores one line of source code, stripped. The comment has been
@@ -145,7 +147,7 @@ public class SourceLine
     public boolean isFunction()
     {
         String tmp = Source.toLowerCase(Locale.US);
-        return tmp.startsWith("function ") || tmp.startsWith("sub ");
+        return tmp.startsWith("function") || tmp.startsWith("sub");
     }
     
     public boolean isEndFunction()
@@ -156,24 +158,12 @@ public class SourceLine
 
     public String getFunctionName()
     {
-        int pos;
-        String name="";
+        Pattern regex = Pattern.compile("(function|sub) ([_a-zA-Z0-9$%&\\.]*)(?=[ \\(]?)(?!=)");
+        Matcher m = regex.matcher(Source.toLowerCase(Locale.US));
         
-        String tmp = Source.toLowerCase(Locale.US);
-        if (tmp.startsWith("function")) {
-            pos = tmp.indexOf('(', 9);
-            if (pos>=0)
-                name = Source.substring(9,pos);
-            
-        } else if (tmp.startsWith("sub")) {
-            pos = tmp.indexOf(' ', 4);
-            if (pos==-1)
-                pos=tmp.indexOf('(', 4);
-            name = pos==-1 ? Source.substring(4) : Source.substring(4,pos);
-        }
-        return name.trim();
+        return m.find() ? m.group(2) : "<INVALID>";
     }
-
+    
     public SourceLine.Type getType() { return lineType; }
     public int getLineNo() { return lineNo; }
     public int getLevel() { return lineLevel; }
