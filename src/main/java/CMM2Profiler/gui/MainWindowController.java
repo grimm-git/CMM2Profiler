@@ -24,6 +24,7 @@ import CMM2Profiler.core.SourceLine;
 import static CMM2Profiler.utils.ErrandFactory.execErrandLoadSource;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import javafx.application.Platform;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
@@ -52,6 +53,7 @@ import javafx.scene.control.cell.TreeItemPropertyValueFactory;
 import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.layout.HBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.util.Callback;
@@ -93,6 +95,8 @@ extends WindowFX
     @FXML  private RadioButton radioFT_M;
     @FXML  private RadioButton radioFT_U;
     
+    @FXML  private Label labelRefFunctionName;
+    @FXML  private HBox hboxRefButtons;
     
     private final MainWindowData dataModel;
     private final DoubleProperty treeTableBarWidthProperty = new SimpleDoubleProperty();
@@ -195,6 +199,8 @@ extends WindowFX
                         for (Function func : change.getAddedSubList()) {
                             final SourceLine srcLine = func.getData();
                             final TreeItem<SourceLine> item = dataModel.findTreeItem(dataModel.getProfilerTree(), srcLine);
+                            labelRefFunctionName.setText(func.getName());
+                            createRefButtons(func.getReferenceList());        
                             
                             if (item != null) {
                                 dataModel.expandBranch(item, true);
@@ -227,6 +233,33 @@ extends WindowFX
         bar.visibleProperty().addListener((obs, oldVal, newVal) -> {  
                 width.set(newVal ? bar.getWidth() : 0);
             });
+    }
+    
+    private void createRefButtons(ArrayList<SourceLine> references)
+    {
+        hboxRefButtons.getChildren().clear();
+        for (int n=0; n < references.size(); n++) {
+            Button btn = new Button(String.format("Ref #%d", n+1));
+            btn.setUserData(references.get(n));
+            btn.setOnAction(value -> {
+                    Button btt = (Button) value.getSource();
+                    SourceLine srcLine = (SourceLine) btt.getUserData();
+                    TreeItem<SourceLine> item = dataModel.findTreeItem(dataModel.getProfilerTree(), srcLine);
+                    
+                    if (item != null) {
+                        dataModel.expandBranch(item, true);
+                            
+                        Platform.runLater(() -> {
+                            int row = SourceTree.getRow(item);
+                            if (row >= 0) {
+                                SourceTree.scrollTo(row);
+                                SourceTree.getSelectionModel().select(item);
+                            }
+                        });
+                    }
+                });
+            hboxRefButtons.getChildren().add(btn);
+        }
     }
     
     // ---------------------------------------------------------------------------------------- 

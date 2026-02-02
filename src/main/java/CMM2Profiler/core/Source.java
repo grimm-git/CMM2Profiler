@@ -199,7 +199,7 @@ public class Source
             for (SourceLine srcLine : SourceLines) {
                 if (srcLine == func.getData()) continue;
                 
-                Pattern regex = Pattern.compile(Pattern.quote(name));
+                Pattern regex = Pattern.compile(Pattern.quote(name)+"(?!=)");
                 Matcher m = regex.matcher(srcLine.getSource().toLowerCase(Locale.US));
         
                 if (m.find())

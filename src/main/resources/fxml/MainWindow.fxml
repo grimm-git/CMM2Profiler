@@ -142,6 +142,21 @@
                            </padding>
                         </VBox>
                         <Separator orientation="VERTICAL" />
+                        <VBox HBox.hgrow="ALWAYS">
+                           <children>
+                              <HBox>
+                                 <children>
+                                    <Label text="References to Function :" />
+                                    <Label fx:id="labelRefFunctionName" text=" " />
+                                 </children>
+                                 <VBox.margin>
+                                    <Insets bottom="4.0" left="4.0" right="4.0" top="4.0" />
+                                 </VBox.margin>
+                              </HBox>
+                              <HBox fx:id="hboxRefButtons" VBox.vgrow="ALWAYS" />
+                           </children>
+                        </VBox>
+                        <Separator orientation="VERTICAL" />
                         <HBox alignment="TOP_CENTER" HBox.hgrow="ALWAYS">
                            <opaqueInsets>
                               <Insets />
@@ -195,7 +210,7 @@
                 <TableColumn fx:id="colFuncName" editable="false" minWidth="50.0" prefWidth="150.0" text="Function" />
                 <TableColumn fx:id="colFuncCalls" editable="false" maxWidth="100.0" minWidth="50.0" prefWidth="75.0" text="Calls" />
                   <TableColumn fx:id="colFuncTime" editable="false" maxWidth="100.0" minWidth="50.0" prefWidth="75.0" text="Time [ms]" />
-                  <TableColumn fx:id="colFuncRefs" editable="false" maxWidth="100.0" minWidth="50.0" prefWidth="75.0" text="#Refs" />
+                  <TableColumn fx:id="colFuncRefs" editable="false" maxWidth="75.0" minWidth="50.0" prefWidth="50.0" text="#Refs" />
               </columns>
             </TableView>
          </items>
