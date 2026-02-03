@@ -158,8 +158,8 @@ public class SourceLine
 
     public String getFunctionName()
     {
-        Pattern regex = Pattern.compile("(function|sub) ([_a-zA-Z0-9$%&\\.]*)(?=[ \\(]?)(?!=)");
-        Matcher m = regex.matcher(Source.toLowerCase(Locale.US));
+        Pattern regex = Pattern.compile("(function|sub) ([_a-zA-Z0-9$%&\\.]*)(?=[ \\(]?)(?!=)", Pattern.CASE_INSENSITIVE);
+        Matcher m = regex.matcher(Source);
         
         return m.find() ? m.group(2) : "<INVALID>";
     }

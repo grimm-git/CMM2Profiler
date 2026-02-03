@@ -96,7 +96,8 @@ extends WindowFX
     @FXML  private RadioButton radioFT_U;
     
     @FXML  private Label labelRefFunctionName;
-    @FXML  private HBox hboxRefButtons;
+    @FXML  private HBox hboxRefRow1;
+    @FXML  private HBox hboxRefRow2;
     
     private final MainWindowData dataModel;
     private final DoubleProperty treeTableBarWidthProperty = new SimpleDoubleProperty();
@@ -199,7 +200,7 @@ extends WindowFX
                         for (Function func : change.getAddedSubList()) {
                             final SourceLine srcLine = func.getData();
                             final TreeItem<SourceLine> item = dataModel.findTreeItem(dataModel.getProfilerTree(), srcLine);
-                            labelRefFunctionName.setText(func.getName());
+                            labelRefFunctionName.setText(func.getName()+"()");
                             createRefButtons(func.getReferenceList());        
                             
                             if (item != null) {
@@ -237,9 +238,18 @@ extends WindowFX
     
     private void createRefButtons(ArrayList<SourceLine> references)
     {
-        hboxRefButtons.getChildren().clear();
-        for (int n=0; n < references.size(); n++) {
-            Button btn = new Button(String.format("Ref #%d", n+1));
+        int jumpIdx;
+        String format;
+        
+        hboxRefRow1.getChildren().clear();
+        hboxRefRow2.getChildren().clear();
+        
+        int cnt = references.size();
+        if (cnt > 20) cnt = 30;
+        jumpIdx = cnt < 8 ? 4 : cnt/2+1;
+        format = cnt < 10 ? "Ref #%d" : "Ref #%02d";        
+        for (int n=0; n < cnt; n++) {
+            Button btn = new Button(String.format(format, n+1));
             btn.setUserData(references.get(n));
             btn.setOnAction(value -> {
                     Button btt = (Button) value.getSource();
@@ -258,7 +268,10 @@ extends WindowFX
                         });
                     }
                 });
-            hboxRefButtons.getChildren().add(btn);
+            if (n < jumpIdx)
+                hboxRefRow1.getChildren().add(btn);
+            else
+                hboxRefRow2.getChildren().add(btn);
         }
     }
     

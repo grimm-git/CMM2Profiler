@@ -32,6 +32,10 @@
     -fx-alignment: CENTER_RIGHT;
 }
 
+.refFuncName {
+    -fx-font-weight: bold;
+}
+
 .html-field-list-cell:focused:selected {
     -fx-background-color: -fx-control-inner-background;
 }
