@@ -195,12 +195,11 @@ public class Source
     private void extractFunctionReferences()
     {
         for (Function func : FunctionList) {
+            Pattern regex = Pattern.compile("(?:^|[\\+\\-,=\\s])"+Pattern.quote(func.getName())+"(?=(?:[ (:]|$))", Pattern.CASE_INSENSITIVE);
             for (SourceLine srcLine : SourceLines) {
                 if (srcLine == func.getData()) continue;
                 
-                Pattern regex = Pattern.compile("(?<![\\w.\\s])"+Pattern.quote(func.getName())+"(?!\\w|\\s*=)", Pattern.CASE_INSENSITIVE);
                 Matcher m = regex.matcher(srcLine.getSource());
-        
                 if (m.find())
                    func.addReference(srcLine);
             }

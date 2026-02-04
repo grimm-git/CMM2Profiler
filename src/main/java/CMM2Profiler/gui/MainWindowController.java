@@ -245,7 +245,7 @@ extends WindowFX
         hboxRefRow2.getChildren().clear();
         
         int cnt = references.size();
-        if (cnt > 20) cnt = 30;
+        if (cnt > 20) cnt = 20;
         jumpIdx = cnt < 8 ? 4 : cnt/2+1;
         format = cnt < 10 ? "Ref #%d" : "Ref #%02d";        
         for (int n=0; n < cnt; n++) {
