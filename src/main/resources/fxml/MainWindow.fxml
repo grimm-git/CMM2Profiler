@@ -71,7 +71,7 @@
                   <Insets bottom="5.0" left="5.0" right="10.0" top="5.0" />
                </HBox.margin>
             </ImageView>
-            <VBox>
+            <VBox HBox.hgrow="ALWAYS">
                <children>
                   <Label text="CMM2 Profiler">
                      <font>
@@ -81,6 +81,11 @@
                   <Label fx:id="lbPrgName" text="Programmname" />
                </children>
             </VBox>
+            <Label fx:id="lbDataMode" styleClass="modelabel" text="Mode: No Data">
+               <padding>
+                  <Insets right="5.0" />
+               </padding>
+            </Label>
          </children>
          <VBox.margin>
             <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />

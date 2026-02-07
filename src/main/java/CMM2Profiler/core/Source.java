@@ -29,6 +29,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Locale;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -49,63 +50,72 @@ import java.util.regex.Pattern;
  */
 public class Source
 {
-    private String basePath;
+    /**
+     * <ul>
+     * <li>NODATA
+     * - Nothing has been loaded, filed didn't exist
+     * <li>SOURCEONLY
+     * - Only the source code is loaded, no profiler data
+     * <li>PROFILERONLY
+     * - Only the profiler data is loaded, no detailed source
+     * <li>SOURCEANDPROFILER
+     * - Both, source and profiler data is loded, full analyse capabilities.
+     * </ul>
+     */
+    public enum Mode {NODATA, SOURCEONLY, PROFILERONLY, SOURCEANDPROFILER}
+    
     private final ArrayList<SourceLine> SourceLines = new ArrayList<>();
     private final LinkedHashMap<String,SourceFile> StructureMap = new LinkedHashMap<>();
     private final ArrayList<Function> FunctionList = new ArrayList<>();
     
     private int codeLineNo;
+    private Mode codeMode;
     
     public Source()
     {
-        basePath="";
+        codeMode = Mode.NODATA;
     }
     
-    public SourceFile getSourceFile(String name)
-    {
-        return StructureMap.get(name);
-    }
+    public SourceFile             getSourceFile(String name) { return StructureMap.get(name); }
+    public Set<String>            getSourceFileNames()       { return StructureMap.keySet(); }
+    public ArrayList<Function>    getFunctionList()          { return FunctionList; }
+    public Collection<SourceFile> getStructureMap()          { return StructureMap.values(); }
+    public SourceLine             getSourceLine(int idx)     { return SourceLines.get(idx); }
+    public int                    getSourceLineCnt()         { return SourceLines.size();  }
+    public Mode                   getMode()                  { return codeMode; }
     
-    public Set<String> getSourceFileNames()
+    public Mode load(String base, String path) throws IOException
     {
-        return StructureMap.keySet();
-    }
-    
-    public ArrayList<Function> getFunctionList()
-    {
-        return FunctionList;
-    }
-
-    public Collection<SourceFile> getStructureMap()
-    {
-        return StructureMap.values();
-    }
-    
-    public SourceLine getSourceLine(int idx)
-    {
-        return SourceLines.get(idx);
-    }
-   
-    public int getSourceLineCnt()
-    {
-        return SourceLines.size();
-    }
-    
-    public void load(String base, String path) throws IOException
-    {
-        basePath=base;
+        File fh;
 
         FunctionList.clear();
         StructureMap.clear();
         SourceLines.clear();
-       
-        loadFullSource(base, path+".bas");
-        loadProfilerLog(base,path+".csv");
+        codeLineNo=0;
+
+        fh=new File(base, path+".bas");
+        if (fh.isFile()) {
+            loadSource(base, path+".bas");
+            codeMode = Mode.SOURCEONLY;
+            fh=new File(base, path+".csv");
+            if (fh.isFile()) {
+                loadProfilerLogOnSource(fh);
+                codeMode = Mode.SOURCEANDPROFILER;
+            }
+        } else {
+            fh=new File(base, path+".csv");
+            if (fh.isFile()) {
+                loadProfilerLog(fh);
+                codeMode = Mode.PROFILERONLY;
+            }
+        }
+        
         cleanupSourceLines();
         extractFunctionReferences();
+        return codeMode;
     }
     
-    private void loadFullSource(String base, String path) throws IOException
+    private void loadSource(String base, String path) throws IOException
     {
         int mainLines = loadSourceFile(base, path);  // load main source file
         SourceFile src=new SourceFile(path,0,mainLines-1);
@@ -120,7 +130,7 @@ public class Source
                 int a = codeLine.indexOf('"')+1;
                 int b = codeLine.indexOf('"', a);
                 String name = codeLine.substring(a,b);
-                int cnt=loadSourceFile(base,name);
+                int cnt=loadSourceFile(base,name);    // load include file
                 src=new SourceFile(name,lineno,lineno+cnt-1);
                 StructureMap.put(name, src);
                 lineno += cnt;
@@ -153,43 +163,93 @@ public class Source
         return cnt;
     }
  
-    private void loadProfilerLog(String base, String path) throws IOException
+    private void loadProfilerLogOnSource(File fh) throws IOException
     {
-        BufferedReader reader;
-        String line;
-        String name;
-        String[] parts;
         int lineno;
         
-        File fh=new File(base, path);
+        try (BufferedReader reader = openProfileReader(fh)) {
+            String line = reader.readLine();
+            while (line != null) {
+                String[] parts = line.split(",");
+                String name = parts[parts.length-2];
+                if (name.isEmpty()) name="Main Program";
+                SourceFile obj=StructureMap.get(name);
+                if (obj == null) throw new IOException("unknown source file \""+name+"\"");
+                
+                lineno = convertInt(parts[parts.length-1])-1;
+                lineno += obj.getFirstLine();
+                
+                SourceLine source = getSourceLine(lineno);
+                source.setCalls(convertInt(parts[0]));
+                source.setTime(convertFloat(parts[1]));
+                
+                line = reader.readLine();
+            }
+        }
+    }
+
+    private void loadProfilerLog(File fh) throws IOException
+    {
+        LinkedHashMap<String,ArrayList<SourceLine>> SMap = new LinkedHashMap<>();
+        
+        try (BufferedReader reader = openProfileReader(fh)) {
+            String line = reader.readLine();
+            while (line != null) {
+                String[] parts = line.split(",");
+                String name = parts[parts.length-2];
+                if (name.isEmpty()) name="Main Program";
+                
+                ArrayList<SourceLine> SFile = SMap.get(name);
+                if (SFile == null) {
+                    SFile = new ArrayList<SourceLine>();
+                    SMap.put(name, SFile);
+                }
+               
+                String codeLine = parts[2].trim().replaceAll("^\\\"|\\\"$", "");
+                SourceLine srcLine = new SourceLine(codeLine);
+                srcLine.setCalls(convertInt(parts[0]));
+                srcLine.setTime(convertFloat(parts[1]));
+                codeLineNo = srcLine.setLineNo(codeLineNo);
+                SFile.add(srcLine);
+                
+                line = reader.readLine();
+            }
+        }
+        
+        int lineno=0;
+        for (Entry<String,ArrayList<SourceLine>> item : SMap.entrySet()) {
+            String name = item.getKey();
+            ArrayList<SourceLine> srcList = item.getValue();
+            
+            SourceFile sFile = new SourceFile(name,lineno,lineno+srcList.size()-1);
+            StructureMap.put(name, sFile);
+            SourceLines.addAll(srcList);
+            lineno += srcList.size();
+        }
+    }
+
+    /**
+     * Open a buffered reader for the profiler data, verifies the file format
+     * and returns the reader, if everything is in order.
+     * 
+     * @param fh Initialized file handle
+     * @return BufferdReader object
+     * @throws IOException for "File not found" and "Bad file formet"
+     */    
+    private BufferedReader openProfileReader(File fh) throws IOException
+    {
         InputStream iStream = new FileInputStream(fh);
-        reader = new BufferedReader(new InputStreamReader(iStream));
+        BufferedReader reader = new BufferedReader(new InputStreamReader(iStream));
             
         // Read header and verify file format
-        line = reader.readLine();
-        if (line.charAt(0)=='/') line=line.substring(1);
-        parts = line.split("/");
+        String line = reader.readLine();
+        if (line.charAt(0)=='/')
+            line=line.substring(1);
+        String [] parts = line.split("/");
         if (parts.length != 3) throw new IOException("Bad file format");
         if (!parts[2].endsWith(".bas")) throw new IOException("Bad file format");
 
-        line = reader.readLine();
-        while (line != null) {
-            parts = line.split(",");
-            name = parts[parts.length-2];
-            if (name.isEmpty()) name="Main Program";
-            SourceFile obj=StructureMap.get(name);
-            if (obj == null) throw new IOException("unknown source file \""+name+"\"");
-            
-            lineno = convertInt(parts[parts.length-1])-1;
-            lineno += obj.getFirstLine();
-            
-            SourceLine source = getSourceLine(lineno);
-            source.setCalls(convertInt(parts[0]));
-            source.setTime(convertFloat(parts[1]));
-
-            line = reader.readLine();
-        }
-        reader.close();
+        return reader;
     }
     
     private void extractFunctionReferences()

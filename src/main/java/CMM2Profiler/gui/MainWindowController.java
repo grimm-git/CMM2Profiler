@@ -19,6 +19,7 @@ package CMM2Profiler.gui;
 
 import CMM2Profiler.Defaults;
 import CMM2Profiler.core.Function;
+import CMM2Profiler.core.Source;
 import CMM2Profiler.utils.ObjectConverter;
 import CMM2Profiler.core.SourceLine;
 import static CMM2Profiler.utils.ErrandFactory.execErrandLoadSource;
@@ -67,6 +68,7 @@ public class MainWindowController
 extends WindowFX
 {
     @FXML  private Label lbPrgName;
+    @FXML  private Label lbDataMode;
     @FXML  private Button  btnClose;
     @FXML  private Label  errorMsg;
     @FXML  private MenuItem miOpen;
@@ -124,6 +126,7 @@ extends WindowFX
 
         // Main Program Page
         lbPrgName.textProperty().bind(dataModel.nameProperty());
+        lbDataMode.textProperty().bind(dataModel.modeProperty());
         
         // TreeTableView with Profiler Data
         colLine.setCellValueFactory(new TreeItemPropertyValueFactory<>("lineNo"));
@@ -246,7 +249,7 @@ extends WindowFX
         
         int cnt = references.size();
         if (cnt > 20) cnt = 20;
-        jumpIdx = cnt < 8 ? 4 : cnt/2+1;
+        jumpIdx = cnt < 8 ? 4 : (int)(cnt/2+0.5);
         format = cnt < 10 ? "Ref #%d" : "Ref #%02d";        
         for (int n=0; n < cnt; n++) {
             Button btn = new Button(String.format(format, n+1));
@@ -361,14 +364,12 @@ extends WindowFX
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle(title);
         fileChooser.getExtensionFilters().addAll(
-            new FileChooser.ExtensionFilter("CSV Files", "*.csv"),
-            new FileChooser.ExtensionFilter("Basic Files", "*.bas"));
+            new FileChooser.ExtensionFilter("Profiler Files", "*.csv", "*.bas"));
         
         File selectedFile = fileChooser.showOpenDialog(new Stage());
         return selectedFile;
     }
-
-    
+   
     /**
      * Callbacks to format table cells
      */
@@ -507,6 +508,14 @@ extends WindowFX
     // ---------------------------------------------------------------------------------------- 
     private void loadSourceSucceeded(WorkerStateEvent ev)
     {
+        Source.Mode mode = (Source.Mode) ev.getSource().getValue();
+        switch (mode) {
+            case NODATA -> dataModel.modeProperty().set("Mode: No Data");
+            case SOURCEONLY -> dataModel.modeProperty().set("Mode: Source only");
+            case PROFILERONLY -> dataModel.modeProperty().set("Mode: Profiler Data only");
+            case SOURCEANDPROFILER -> dataModel.modeProperty().set("Mode: Source & Profiler Data");
+        }
+        
         dataModel.updateProfilerTree();
         SourceTree.setRoot(dataModel.getProfilerTree());
         SourceTree.setShowRoot(false);
@@ -545,5 +554,4 @@ extends WindowFX
             return object.isFunction() ? imgFunction : imgSub;
         }
     }
-
 }

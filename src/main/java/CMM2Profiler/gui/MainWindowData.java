@@ -20,9 +20,6 @@ import CMM2Profiler.core.Function;
 import CMM2Profiler.core.Source;
 import CMM2Profiler.core.SourceFile;
 import CMM2Profiler.core.SourceLine;
-import java.util.ArrayList;
-import javafx.beans.property.DoubleProperty;
-import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
@@ -36,16 +33,14 @@ import javafx.scene.control.TreeItem;
 public class MainWindowData
 {
     private final StringProperty programName = new SimpleStringProperty();
-
-    private final ObservableList<Function> functionList =  FXCollections.observableArrayList();
-
+    private final StringProperty programMode = new SimpleStringProperty();
     private final StringProperty errorMsg = new SimpleStringProperty();
     private final StringProperty successMsg = new SimpleStringProperty();
+
+    private final ObservableList<Function> functionList =  FXCollections.observableArrayList();
     
     protected Source mainSource = new Source();
     private TreeItem<SourceLine> treeRoot=null;
-    private ArrayList<TreeItem<SourceLine>> expandedItems = new ArrayList<>();
-        
     private int SourceTimeScaler;
     private int FunctionTimeScaler;
     
@@ -64,9 +59,7 @@ public class MainWindowData
     public int    getFunctionTimeScaler()          { return FunctionTimeScaler; }
     public void   setFunctionTimeScaler(int scale) { FunctionTimeScaler = scale; }
 
-    /**
-     * Convinience Functions to access data model of Function List GUI element
-     */
+    // Convinience Functions to access data model of Function List GUI element
     public ObservableList<Function> getFunctionList() { return functionList; }
     public void updateFunctionList()
     {
@@ -74,9 +67,7 @@ public class MainWindowData
         functionList.addAll(mainSource.getFunctionList());
     }
     
-    /**
-     * Convinience Functions to access data model of Profiler Tree Table View
-     */
+    // Convinience Functions to access data model of Profiler Tree Table View
     public TreeItem<SourceLine> getProfilerTree() { return treeRoot; }
     public void updateProfilerTree()
     {
@@ -85,7 +76,6 @@ public class MainWindowData
         header = SourceLine.createSourceHeader(programName.get());
         TreeItem<SourceLine> root = new TreeItem<>(header);
         
-        int idx=0;
         for (SourceFile srcFile : mainSource.getStructureMap()) {
             header = srcFile.getSource();
 //            header = SourceLine.createSourceHeader(idx++ == 0 ? "Main" : srcFile.getPath());
@@ -144,6 +134,7 @@ public class MainWindowData
     //                                   Property Objects
     // -------------------------------------------------------------------------------- 
     public StringProperty nameProperty()        { return programName; }
+    public StringProperty modeProperty()        { return programMode; }
     public StringProperty errorMsgProperty()    { return errorMsg; }
     public StringProperty successMsgProperty()  { return successMsg; }
 

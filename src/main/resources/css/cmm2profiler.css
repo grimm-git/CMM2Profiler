@@ -36,6 +36,11 @@
     -fx-font-weight: bold;
 }
 
+.modelabel {
+    -fx-font-weight: bold;
+    -fx-font-size:1.2em;
+}
+
 .html-field-list-cell:focused:selected {
     -fx-background-color: -fx-control-inner-background;
 }

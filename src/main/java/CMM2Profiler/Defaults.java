@@ -36,9 +36,9 @@ public final class Defaults
      * be shown in the About window. It is for information only.
      */
     public static final int       APP_VERSION = 0;
-    public static final int       APP_REVISION = 3;
-    public static final String    APP_SUFFIX = "-2";
-    public static final LocalDate APP_DATE = LocalDate.of(2026, 1, 24);
+    public static final int       APP_REVISION = 4;
+    public static final String    APP_SUFFIX = "";
+    public static final LocalDate APP_DATE = LocalDate.of(2026, 2, 07);
    
     public static String getVersionString()
     {

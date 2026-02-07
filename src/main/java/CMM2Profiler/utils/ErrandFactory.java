@@ -27,15 +27,14 @@ import javafx.event.EventHandler;
  */
 public class ErrandFactory
 {
-    public static Errand<Void> loadSourceErrand(Source src, String filePath, String fileName,
+    public static Errand<Source.Mode> loadSourceErrand(Source src, String filePath, String fileName,
                                         EventHandler<WorkerStateEvent> onSuccess,
                                         EventHandler<WorkerStateEvent> onFailure)
     {
-        Errand<Void> E = new Errand<>() {
+        Errand<Source.Mode> E = new Errand<>() {
                 @Override 
-                protected Void call() throws IOException {
-                    src.load(filePath, fileName);
-                    return null;
+                protected Source.Mode call() throws IOException {
+                    return src.load(filePath, fileName);
                 }};
         
         E.setOnSucceeded(onSuccess);
