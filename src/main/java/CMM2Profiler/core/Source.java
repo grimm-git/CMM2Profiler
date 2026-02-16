@@ -246,8 +246,7 @@ public class Source
         if (line.charAt(0)=='/')
             line=line.substring(1);
         String [] parts = line.split("/");
-        if (parts.length != 3) throw new IOException("Bad file format");
-        if (!parts[2].endsWith(".bas")) throw new IOException("Bad file format");
+        if (!parts[parts.length-1].endsWith(".bas")) throw new IOException("Bad file format");
 
         return reader;
     }
