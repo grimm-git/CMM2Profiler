@@ -1,9 +1,7 @@
 plugins {
     id 'application'
-    id 'jacoco'
     id 'org.openjfx.javafxplugin' version '0.1.0'
-    id 'org.beryx.jlink' version '2.25.0'
-//    id 'com.palantir.git-version' version '0.15.0'
+    id 'jacoco'
 }
 
 //version gitVersion()
@@ -42,13 +40,6 @@ dependencies {
 java {
     toolchain {
         languageVersion = JavaLanguageVersion.of(17)
-    }
-}
-
-jlink {
-    options = ['--strip-debug', '--compress', '2', '--no-header-files', '--no-man-pages']
-    launcher {
-        name = 'CMM2Profiler'
     }
 }
 
