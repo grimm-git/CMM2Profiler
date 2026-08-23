@@ -96,6 +96,7 @@ extends WindowFX
                                 this::reportSucceeded, this::taskFailed);
                     }
                 });
+        listReports.getSelectionModel().select("Introduction");
 
         textSearch.textProperty().addListener((obs, oldVal, newVal) -> {
             });

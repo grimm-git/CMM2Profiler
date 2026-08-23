@@ -127,9 +127,7 @@ public class ReportVariables
         + " overflow:hidden; text-overflow:ellipsis; }\n"
         + "</style>\n";
 
-    public ReportVariables()
-    {
-    }
+    public ReportVariables()  { }
 
     /**
      * Builds the complete report. The source code is scanned, the template is

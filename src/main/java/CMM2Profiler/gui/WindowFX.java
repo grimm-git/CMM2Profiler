@@ -17,6 +17,8 @@
  */
 package CMM2Profiler.gui;
 
+import static java.lang.Float.floatToIntBits;
+
 import java.io.IOException;
 import java.net.URL;
 import javafx.fxml.FXMLLoader;
@@ -46,6 +48,8 @@ public abstract class WindowFX
     protected Label msgLabel;
     protected double posX;
     protected double posY;
+
+    private boolean ownerSet=false;
      
     @SuppressWarnings("LeakingThisInConstructor")
     protected WindowFX(String fxmlFile, String cssFile) throws IOException
@@ -79,13 +83,14 @@ public abstract class WindowFX
      */
     public void show()
     {
-        show(stage.getOwner());
+        if (stage.isShowing())
+            return;
 
-//        if (stage.isShowing())
-//            return;
-//        if (posX > 0) stage.setX(posX);
-//        if (posY > 0) stage.setY(posY);
-//        stage.show();
+        ownerSet=true;
+
+        if (posX > 0) stage.setX(posX);
+        if (posY > 0) stage.setY(posY);
+        stage.show();
     }
 
     /**
@@ -95,8 +100,12 @@ public abstract class WindowFX
     {
         if (stage.isShowing())
             return;
-        
-        stage.initOwner(owner);
+
+        if (ownerSet==false) {
+            stage.initOwner(owner);
+            ownerSet=true;
+        }
+
         if (posX > 0) stage.setX(posX);
         if (posY > 0) stage.setY(posY);
         stage.show();
@@ -110,11 +119,14 @@ public abstract class WindowFX
      */
     public void showAndWait(Window owner)
     {
+        if (ownerSet==false) {
+            stage.initOwner(owner);
+            stage.initModality(Modality.WINDOW_MODAL);
+            ownerSet=true;
+        }
+
         if (posX > 0) stage.setX(posX);
         if (posY > 0) stage.setY(posY);
-
-        stage.initOwner(owner);
-        stage.initModality(Modality.WINDOW_MODAL);
         stage.showAndWait();   // show dialog and wait for completion
         close();
     }

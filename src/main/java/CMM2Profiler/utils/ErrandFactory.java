@@ -16,12 +16,13 @@
  */
 package CMM2Profiler.utils;
 
-import CMM2Profiler.Optimizer.ReportVariables;
-import CMM2Profiler.Optimizer.Reports;
-import CMM2Profiler.core.Source;
 import java.io.IOException;
 import javafx.concurrent.WorkerStateEvent;
 import javafx.event.EventHandler;
+import CMM2Profiler.Optimizer.ReportIntro;
+import CMM2Profiler.Optimizer.ReportVariables;
+import CMM2Profiler.Optimizer.Reports;
+import CMM2Profiler.core.Source;
 
 /**
  *
@@ -60,6 +61,9 @@ public class ErrandFactory
                 @Override 
                 protected String call() throws IOException {
                     switch (report) {
+                    case INTRO:
+                        ReportIntro RI = new ReportIntro();
+                        return RI.create(src,report.getTemplate());
                     case VARIABLES:
                         ReportVariables RV = new ReportVariables();
                         return RV.create(src,report.getTemplate());
