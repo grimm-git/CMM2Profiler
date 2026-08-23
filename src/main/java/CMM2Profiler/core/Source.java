@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2026 grimm
+ * Copyright (C) 2026 Matthias Grimm <codingjoker@web.de>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -84,6 +84,10 @@ public class Source
     public int                    getSourceLineCnt()         { return SourceLines.size();  }
     public Mode                   getMode()                  { return codeMode; }
     
+    public Boolean hasSourceCode() {
+        return (codeMode==Mode.SOURCEONLY || codeMode==Mode.SOURCEANDPROFILER);
+    }
+
     public Mode load(String base, String path) throws IOException
     {
         File fh;

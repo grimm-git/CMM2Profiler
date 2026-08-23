@@ -75,6 +75,8 @@ extends WindowFX
     @FXML  private MenuItem miExit;
     @FXML  private MenuItem miAbout;
     
+    @FXML  private Button btnOptimizer;
+
     @FXML  private TreeTableView<SourceLine> SourceTree;
     @FXML  private TreeTableColumn<SourceLine, Integer> colLine;
     @FXML  private TreeTableColumn<SourceLine, Integer> colCalls;
@@ -282,9 +284,16 @@ extends WindowFX
     //                                      FXML GUI handler
     // ---------------------------------------------------------------------------------------- 
     @FXML
-    protected void handleAction(ActionEvent ev)
+    protected void handleAction(ActionEvent ev) throws IOException
     {
         if (ev.getSource() == btnClose) close();
+        if (ev.getSource() == btnOptimizer) {
+            if (dataModel.mainSource.hasSourceCode()) {
+                OptimizerController ctrl = OptimizerController.open();
+                ctrl.setSource(dataModel.mainSource);
+                ctrl.show(stage);
+            } else showError("Please load source first!");
+        }
     }
 
     @FXML

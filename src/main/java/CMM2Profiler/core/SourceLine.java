@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2026 grimm
+ * Copyright (C) 2026 Matthias Grimm <codingjoker@web.de>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -76,7 +76,7 @@ public class SourceLine
                 lineType=SourceLine.Type.COMMENT;
             } else if (pos>0) {
                 Comment=line.substring(pos).trim();
-                Source=line.substring(0, pos-1).trim();
+                Source=line.substring(0, pos).trim();
             }
 
             if (lineType==SourceLine.Type.SOURCE) {

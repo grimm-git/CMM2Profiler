@@ -24,6 +24,7 @@ module CMM2Profiler
 {
     requires javafx.controls;   // pulls in javafx.base and javafx.graphics
     requires javafx.fxml;
+    requires javafx.web;
 
     // javafx.graphics instantiates Main (extends Application) reflectively
     opens CMM2Profiler to javafx.graphics;

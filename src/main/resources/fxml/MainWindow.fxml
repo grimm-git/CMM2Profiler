@@ -170,14 +170,22 @@
                            </children>
                         </VBox>
                         <Separator orientation="VERTICAL" />
-                        <HBox alignment="TOP_CENTER" HBox.hgrow="ALWAYS">
-                           <opaqueInsets>
-                              <Insets />
-                           </opaqueInsets>
+                        <VBox>
+                           <children>
+                              <Button fx:id="btnOptimizer" mnemonicParsing="false" onAction="#handleAction" onKeyPressed="#handleKeys" text="Optimizer">
+                                 <graphic>
+                                    <ImageView pickOnBounds="true" preserveRatio="true">
+                                       <image>
+                                          <Image url="@../images/cmm2profiler_16x16.png" />
+                                       </image>
+                                    </ImageView>
+                                 </graphic>
+                              </Button>
+                           </children>
                            <padding>
-                              <Insets bottom="2.0" />
+                              <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
                            </padding>
-                        </HBox>
+                        </VBox>
                         <Separator orientation="VERTICAL" />
                         <VBox>
                            <children>

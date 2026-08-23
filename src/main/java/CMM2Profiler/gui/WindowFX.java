@@ -19,7 +19,6 @@ package CMM2Profiler.gui;
 
 import java.io.IOException;
 import java.net.URL;
-import javafx.event.EventHandler;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Orientation;
 import javafx.scene.Node;
@@ -80,9 +79,24 @@ public abstract class WindowFX
      */
     public void show()
     {
+        show(stage.getOwner());
+
+//        if (stage.isShowing())
+//            return;
+//        if (posX > 0) stage.setX(posX);
+//        if (posY > 0) stage.setY(posY);
+//        stage.show();
+    }
+
+    /**
+     * Show the dialog and return.
+     */
+    public void show(Window owner)
+    {
         if (stage.isShowing())
             return;
         
+        stage.initOwner(owner);
         if (posX > 0) stage.setX(posX);
         if (posY > 0) stage.setY(posY);
         stage.show();
@@ -108,7 +122,7 @@ public abstract class WindowFX
     /**
      * Close the dialog
      */
-    protected void close()
+    public void close()
     {
         posX = stage.getX();
         posY = stage.getY();
@@ -141,7 +155,7 @@ public abstract class WindowFX
     {
         if (msgLabel != null) {
             msgLabel.setText(msg);
-            msgLabel.setStyle("-fx-text-fill:-fx-negative-color;-fx-font-size:0.8em;");
+            msgLabel.setStyle("-fx-text-fill:-fx-negative-color;-fx-font-size:1.2em;");
             syncTooltip(msg);
         }
     }

@@ -16,6 +16,8 @@
  */
 package CMM2Profiler.utils;
 
+import CMM2Profiler.Optimizer.ReportVariables;
+import CMM2Profiler.Optimizer.Reports;
 import CMM2Profiler.core.Source;
 import java.io.IOException;
 import javafx.concurrent.WorkerStateEvent;
@@ -50,4 +52,35 @@ public class ErrandFactory
         loadSourceErrand(src, filePath, fileName, onSuccess, onFailure).execute();
     }
     
+    public static Errand<String> createReportErrand(Reports report, Source src,
+                                        EventHandler<WorkerStateEvent> onSuccess,
+                                        EventHandler<WorkerStateEvent> onFailure)
+    {
+        Errand<String> E = new Errand<>() {
+                @Override 
+                protected String call() throws IOException {
+                    switch (report) {
+                    case VARIABLES:
+                        ReportVariables RV = new ReportVariables();
+                        return RV.create(src,report.getTemplate());
+                    case INC:
+//                        ReportINC RI = new ReportINC();
+//                        return RI.create(src,report.getTemplate());
+                    default:
+                        return null;
+                    }
+                }};
+        
+        E.setOnSucceeded(onSuccess);
+        E.setOnFailed(onFailure);
+        E.setOnCancelled(onFailure);
+        return E;
+    }
+    
+    public static void execErrandCreateReport(Reports report, Source src,
+                                        EventHandler<WorkerStateEvent> onSuccess,
+                                        EventHandler<WorkerStateEvent> onFailure)
+    {
+        createReportErrand(report, src, onSuccess, onFailure).execute();
+    }
 }

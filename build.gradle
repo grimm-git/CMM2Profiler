@@ -25,7 +25,7 @@ compileTestJava {
 
 javafx {
     version = "17.0.2"
-    modules = [ 'javafx.controls', 'javafx.fxml' ]
+    modules = [ 'javafx.controls', 'javafx.fxml', 'javafx.web' ]
 }
 
 dependencies {
@@ -47,6 +47,9 @@ distributions {
     main {
         distributionBaseName = 'CMM2Profiler'
         contents {
+            into('optimizer') {
+                from 'optimizer'
+            }
         }
     }
 }
