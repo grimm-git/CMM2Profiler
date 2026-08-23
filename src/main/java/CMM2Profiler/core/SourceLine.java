@@ -24,7 +24,7 @@ import java.util.regex.Pattern;
 /**
  * This class stores one line of source code, stripped. The comment has been
  * seperated to another field. A type categorized the contents.
- * @author Matthias Grimm
+ * @author Matthias Grimm <codingjoker@web.de>
  */
 public class SourceLine
 {

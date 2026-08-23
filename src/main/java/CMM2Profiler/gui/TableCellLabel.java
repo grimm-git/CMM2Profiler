@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Matthias Grimm <matthiasgrimm@users.sourceforge.net>
+ * Copyright (C) 2026 Matthias Grimm <codingjoker@web.de>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -28,7 +28,7 @@ import javafx.util.Callback;
 
 /**
  *
- * @author Matthias Grimm <matthiasgrimm@users.sourceforge.net>
+ * @author Matthias Grimm <codingjoker@web.de>
  * @param <S>  Type of data in TableView
  * @param <T>  Type of data in TableCell
  */

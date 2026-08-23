@@ -46,7 +46,7 @@ import java.util.regex.Pattern;
  * The array IncludeFiles contain a register of all nnclude files and where
  * they are located in the source array
  * 
- * @author Matthias Grimm
+ * @author Matthias Grimm <codingjoker@web.de>
  */
 public class Source
 {

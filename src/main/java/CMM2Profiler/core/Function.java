@@ -22,7 +22,7 @@ import java.util.Locale;
 
 /**
  *
- * @author grimm
+ * @author Matthias Grimm <codingjoker@web.de>
  */
 public class Function
 {

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2026 Matthias Grimm <matthiasgrimm@users.sourceforge.net>
+ * Copyright (C) 2026 Matthias Grimm <codingjoker@web.de>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,12 +16,9 @@
  */
 package CMM2Profiler;
 
-import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-
-import CMM2Profiler.gui.OptimizerController;
 
 /**
  * Master data container class of the application

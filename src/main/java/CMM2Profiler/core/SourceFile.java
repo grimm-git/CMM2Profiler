@@ -18,7 +18,7 @@ package CMM2Profiler.core;
 
 /**
  *
- * @author Matthias Grimm
+ * @author Matthias Grimm <codingjoker@web.de>
  */
 public class SourceFile
 {

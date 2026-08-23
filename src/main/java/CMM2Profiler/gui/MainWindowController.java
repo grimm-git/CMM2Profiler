@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Matthias Grimm <matthiasgrimm@users.sourceforge.net>
+ * Copyright (C) 2026 Matthias Grimm <codingjoker@web.de>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -17,12 +17,6 @@
  */
 package CMM2Profiler.gui;
 
-import CMM2Profiler.Defaults;
-import CMM2Profiler.core.Function;
-import CMM2Profiler.core.Source;
-import CMM2Profiler.utils.ObjectConverter;
-import CMM2Profiler.core.SourceLine;
-import static CMM2Profiler.utils.ErrandFactory.execErrandLoadSource;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -58,11 +52,17 @@ import javafx.scene.layout.HBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.util.Callback;
+import CMM2Profiler.Defaults;
+import CMM2Profiler.core.Function;
+import CMM2Profiler.core.Source;
+import CMM2Profiler.utils.ObjectConverter;
+import CMM2Profiler.core.SourceLine;
+import static CMM2Profiler.utils.ErrandFactory.execErrandLoadSource;
 
 /**
  * FXML Controller class.<p>
  *
- * @author Matthias Grimm <matthiasgrimm@users.sourceforge.net>
+ * @author Matthias Grimm <codingjoker@web.de>
  */
 public class MainWindowController
 extends WindowFX

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 grimm
+ * Copyright (C) 2026 Matthias Grimm <codingjoker@web.de>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,7 +21,7 @@ import java.time.format.DateTimeFormatter;
 
 /**
  *
- * @author Matthias Grimm
+ * @author Matthias Grimm <codingjoker@web.de>
  */
 public final class Defaults
 {

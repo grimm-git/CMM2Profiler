@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Matthias Grimm <matthiasgrimm@users.sourceforge.net>
+ * Copyright (C) 2026 Matthias Grimm <codingjoker@web.de>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -24,7 +24,7 @@ import javafx.scene.image.Image;
  * use it. The main task is to transform the custom object into something, the Cell can
  * display.<p>
  * 
- * @author Matthias Grimm <matthiasgrimm@users.sourceforge.net>
+ * @author Matthias Grimm <codingjoker@web.de>
  * @param <T>  Type of the custom object and base type of the ListView or TableView
  */
 public abstract class ObjectConverter<T>

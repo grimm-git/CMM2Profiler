@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Matthias Grimm <matthiasgrimm@users.sourceforge.net>
+ * Copyright (C) 2026 Matthias Grimm <codingjoker@web.de>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -25,7 +25,7 @@ import javafx.concurrent.Task;
  * An Errand is a single task that will be executed and closed. It is not foreseen for
  * continously running tasks.
  * 
- * @author Matthias Grimm <matthiasgrimm@users.sourceforge.net>
+ * @author Matthias Grimm <codingjoker@web.de>
  * @param <V>  Datatype of return data from the Errand
  */
 public abstract class Errand<V>

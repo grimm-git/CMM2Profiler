@@ -21,7 +21,7 @@ import java.util.regex.Pattern;
 
 /**
  *
- * @author grimm
+ * @author Matthias Grimm <codingjoker@web.de>
  */
 public class MMBasic
 {
