@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
+"http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd"><html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<link rel="stylesheet"  type="text/css" href="../Styles/style.css"/>
+<title>CMM2 Profiler - Optimizer</title>
+</head><body>
+<div class='dokuwiki'>
+<h1 id='variable_length'>Increment</h1>
+<div class="level1">
+<p>Increments and decrements are used quite often in programs. MMBasic supports two methods of doing them:</p>
+<ul><li>The classic method with a = a + b or
+<li>using the INC command
+</ul>
+<p>MMBasic supports only the <b>INC</b>rement command and simulates the <b>DEC</b>rement command with negative increments. see table below.</p>
+
+<h2>Performance Potential</h2>
+<div class="level2">
+<p>The following data have been measured on an Color Maximite 2 G2 (480MHz) with MMBasic 5.07.01.</p>
+<p><b>Test conditions:</b> Each statement has been measured 100000 times and the average time was taken. This was then set as base
+to measure the performance gain of the replacement statement. This was necessary, because each statement needs a different time and
+the performance gain in percent should be accurate.</p>
+</div>
+
+<h2>Access Time Date</h2>
+<div class="level2">
+<table>
+<tr><th>Statement</th><th>time</th><th>Replacement</th><th>time</th><th></th></tr>
+<tr><td>a = a + 1    </td><td>4.37 µs</td><td>INC a        </td><td>3.05 µs</td><td>43% faster</td></tr>
+<tr><td>             </td><td>       </td><td>INC a, 1     </td><td>3.87 µs</td><td>13% faster</td></tr>
+<tr><td>a = a + 10   </td><td>4,44 µs</td><td>INC a, 10    </td><td>4.12 µs</td><td> 8% faster</td></tr>
+<tr><td>a = a + 10000</td><td>4.68 µs</td><td>INC a, 10000 </td><td>4.68 µs</td><td>equal performance</td></tr>
+<tr><td>a = a - 1    </td><td>4.37 µs</td><td>INC a, -1    </td><td>4,32 µs</td><td> 1% faster</td></tr>
+<tr><td>a = a - 10   </td><td>4,44 µs</td><td>INC a, -10   </td><td>4.52 µs</td><td> 2% slower</td></tr>
+<tr><td>a = a - 10000</td><td>4.67 µs</td><td>INC a, -10000</td><td>5.02 µs</td><td> 7% slower</td></tr>
+</table>
+<p>Positive increments should always be done with the INC command. They are significant faster or at least equal.</p>
+<p>Negative increments are only more performant with small numbers. Parsing the extra negative sign consumes
+all the benefits from the faster command.</p>
+</div>
+
+<h2>Statements in the Code</h2>
+<div class="level2">
+<p>Following incremental statements have been found in your code that could be replaced by an INC command.</p>
+<div id='increments'></div>
+</div></div>
+
+</div></body></html>

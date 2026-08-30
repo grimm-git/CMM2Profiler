@@ -6,7 +6,7 @@ public enum Reports
 {
     INTRO("Introduction","Text/introduction.html"),
     VARIABLES("Variable length","Text/variable_length.html"),
-    INC("a=a+b, a=a-b","Text/inc.html");
+    INC("a=a+b, a=a-b","Text/increment.html");
 
     private final static String REPORTFOLDER = "reports/";
 

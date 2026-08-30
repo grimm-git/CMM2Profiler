@@ -16,6 +16,8 @@
  */
 package CMM2Profiler.Optimizer;
 
+import CMM2Profiler.core.SourceLine;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Locale;
 
@@ -24,22 +26,24 @@ import java.util.Locale;
  * variable or the name of a sub or a function.<p>
  *
  * MMBasic is case insensitive, so a name is stored with the spelling of its
- * first appearance in the source code. The counter tells how often the name is
- * used in the program, which includes its declaration and every read and write
- * access. Together with the length of the name this is a measure of how much
- * time the interpreter spends on looking this name up.
+ * first appearance in the source code.<p>
+ *
+ * Every usage of the name is booked with the source line it was found in, the
+ * declaration as well as every read and write access. A line that uses the name
+ * more than once is booked once per usage, so the number of references is the
+ * number of usages. Together with the length of the name this is a measure of
+ * how much time the interpreter spends on looking this name up.
  *
  * @author Matthias Grimm
  */
 public class Variable
 {
     private final String name;
-    private int count;
+    private final ArrayList<SourceLine> references = new ArrayList<>();
 
     public Variable(String varName)
     {
         name = varName;
-        count = 0;
     }
 
     @Override
@@ -48,11 +52,28 @@ public class Variable
         return name;
     }
 
+    /**
+     * Books one usage of this name.
+     *
+     * @param srcLine source line the name was found in
+     */
+    public void addReference(SourceLine srcLine)
+    {
+        references.add(srcLine);
+    }
+
+    /**
+     * All source lines this name is used in, in the order of appearance. A line
+     * that uses the name more than once appears more than once in the list.
+     *
+     * @return the source lines this name is used in
+     */
+    public ArrayList<SourceLine> getReferences() { return references; }
+
     public String getName()   { return name; }
     public int    getLength() { return name.length(); }
-    public int    getCount()  { return count; }
-    public void   incCount()  { count++; }
-    public void   resetCount() { count = 0; }
+    public int    getCount()  { return references.size(); }
+    public void   clearReferences() { references.clear(); }
 
     // -----------------------------------------------------------------------------------
     //                               Static class contents

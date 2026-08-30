@@ -99,7 +99,9 @@ extends WindowFX
     @FXML  private RadioButton radioFT_M;
     @FXML  private RadioButton radioFT_U;
     
-    @FXML  private Label labelRefFunctionName;
+    @FXML  private Label labelRefName;
+    @FXML  private Label labelRefType;
+    @FXML  private Label labelRefExt;
     @FXML  private HBox hboxRefRow1;
     @FXML  private HBox hboxRefRow2;
     
@@ -205,7 +207,7 @@ extends WindowFX
                         for (Function func : change.getAddedSubList()) {
                             final SourceLine srcLine = func.getData();
                             final TreeItem<SourceLine> item = dataModel.findTreeItem(dataModel.getProfilerTree(), srcLine);
-                            labelRefFunctionName.setText(func.getName()+"()");
+                            setReferenceLabel(0, func.getName(),"");
                             createRefButtons(func.getReferenceList());        
                             
                             if (item != null) {
@@ -241,7 +243,13 @@ extends WindowFX
             });
     }
     
-    private void createRefButtons(ArrayList<SourceLine> references)
+    /**
+     * Fills the two reference rows with jump buttons, one per source line.
+     * Also called from the Optimizer window when a name in a report is clicked.
+     *
+     * @param references source lines to build the buttons for
+     */
+    void createRefButtons(ArrayList<SourceLine> references)
     {
         int jumpIdx;
         String format;
@@ -279,7 +287,36 @@ extends WindowFX
                 hboxRefRow2.getChildren().add(btn);
         }
     }
-    
+
+    /**
+     * @param type  0=function/sub, 1=global variable, 2=local Variable
+     */
+    public void setReferenceLabel(int type, String name, String ext)
+    {
+        switch (type) {
+        case 0:
+            labelRefType.setText("Reference to Function: ");
+            labelRefName.setText(name+"()");
+            labelRefExt.setText("");
+            break;
+        case 1:
+            labelRefType.setText("Reference to Global Variable: ");
+            labelRefName.setText(name);
+            labelRefExt.setText("  "+ext);
+            break;
+        case 2:
+            labelRefType.setText("Reference to Local Variable: ");
+            labelRefName.setText(name);
+            labelRefExt.setText("  "+ext);
+            break;
+        case 3:
+            labelRefType.setText("Reference to Statement: ");
+            labelRefName.setText(name);
+            labelRefExt.setText("");
+            break;
+        }
+    }
+
     // ---------------------------------------------------------------------------------------- 
     //                                      FXML GUI handler
     // ---------------------------------------------------------------------------------------- 
@@ -291,6 +328,7 @@ extends WindowFX
             if (dataModel.mainSource.hasSourceCode()) {
                 OptimizerController ctrl = OptimizerController.open();
                 ctrl.setSource(dataModel.mainSource);
+                ctrl.setMainWindow(this);
                 ctrl.show(stage);
             } else showError("Please load source first!");
         }

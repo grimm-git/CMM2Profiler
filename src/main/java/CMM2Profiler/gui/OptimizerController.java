@@ -18,6 +18,10 @@
 package CMM2Profiler.gui;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
+import javafx.application.Platform;
+import javafx.concurrent.Worker;
 import javafx.concurrent.WorkerStateEvent;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -29,8 +33,17 @@ import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.web.WebView;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.events.EventTarget;
+import CMM2Profiler.Optimizer.Increment;
+import CMM2Profiler.Optimizer.ReportIncrement;
+import CMM2Profiler.Optimizer.ReportVariables;
 import CMM2Profiler.Optimizer.Reports;
+import CMM2Profiler.Optimizer.Variable;
 import CMM2Profiler.core.Source;
+import CMM2Profiler.core.SourceLine;
 import static CMM2Profiler.utils.ErrandFactory.execErrandCreateReport;
 
 /**
@@ -53,6 +66,9 @@ extends WindowFX
     
     private final OptimizerData dataModel;
 
+    /** Window the reference buttons of a clicked name are built in */
+    private MainWindowController mainWindow = null;
+
     @SuppressWarnings("DoubleCheckedLocking")
     public static OptimizerController open() throws IOException
     {
@@ -70,6 +86,11 @@ extends WindowFX
     public void setSource(Source src)
     {
         dataModel.mainSource=src;
+    }
+
+    public void setMainWindow(MainWindowController ctrl)
+    {
+        mainWindow = ctrl;
     }
 
     /**
@@ -93,10 +114,18 @@ extends WindowFX
                         Reports rep=Reports.findReports(newVal);
 
                         execErrandCreateReport(rep, dataModel.mainSource,
+                                dataModel.getReportVars(), dataModel.getReportInc(),
                                 this::reportSucceeded, this::taskFailed);
                     }
                 });
         listReports.getSelectionModel().select("Introduction");
+
+        // Every report brings its own document, so the click handler for the
+        // variable names has to be installed again after every load.
+        viewReport.getEngine().getLoadWorker().stateProperty().addListener((obs, oldVal, newVal) -> {
+                    if (newVal == Worker.State.SUCCEEDED)
+                        installNameHandler();
+                });
 
         textSearch.textProperty().addListener((obs, oldVal, newVal) -> {
             });
@@ -118,6 +147,106 @@ extends WindowFX
         }
     }
      
+    /**
+     * Makes the variable names of the report clickable. One listener on the
+     * root element of the document is enough, as the click events of the names
+     * bubble up to it. That keeps the report free of hundreds of listeners.
+     */
+    private void installNameHandler()
+    {
+        Document doc = viewReport.getEngine().getDocument();
+        if (doc == null) return;
+
+        ((EventTarget) doc.getDocumentElement()).addEventListener("click", ev -> {
+                    Node node = (Node) ev.getTarget();
+                    if (!(node instanceof Element)) return;
+
+                    Element element = (Element) node;
+                    String  style   = element.getAttribute("class");
+
+                    // Let the browser finish the dispatch of the click before
+                    // the GUI of the main window is rebuilt.
+                    if (ReportVariables.VAR_CLASS.equals(style)) {
+                        String group = element.getAttribute("data-list");
+                        String name  = element.getAttribute("data-name");
+                        Platform.runLater(() -> showReferences(group, name));
+
+                    } else if (ReportIncrement.INC_CLASS.equals(style)) {
+                        String index = element.getAttribute("data-idx");
+                        Platform.runLater(() -> showStatement(index));
+                    }
+                }, false);
+    }
+
+    /**
+     * Looks the clicked statement up in the report data and hands its source
+     * line to the main window, which turns it into a jump button.
+     *
+     * @param index position of the statement in the report
+     */
+    private void showStatement(String index)
+    {
+        if (mainWindow == null) {
+            showError("No main window to show the references in.");
+            return;
+        }
+
+        Increment entry = null;
+        try {
+            entry = dataModel.getReportInc().findIncrement(Integer.parseInt(index));
+        } catch (NumberFormatException ex) { /* EMPTY */ }
+
+        if (entry == null) {
+            showError("Unknown statement.");
+            return;
+        }
+
+        ArrayList<SourceLine> refs = new ArrayList<>();
+        refs.add(entry.getSourceLine());
+
+        mainWindow.setReferenceLabel(3, entry.getStatement(), "");
+        mainWindow.createRefButtons(refs);
+    }
+
+    /**
+     * Looks the clicked name up in the report data and hands its source line
+     * references to the main window, which turns them into jump buttons.
+     *
+     * @param group name group the clicked name belongs to
+     * @param name  name of the variable, the sub or the function
+     */
+    private void showReferences(String group, String name)
+    {
+        if (mainWindow == null) {
+            showError("No main window to show the references in.");
+            return;
+        }
+
+        Variable entry = dataModel.getReportVars().findVariable(group, name);
+        if (entry == null) {
+            showError("Unknown name \""+name+"\".");
+            return;
+        }
+
+        // A line that uses the name more than once is booked once per usage.
+        // The jump buttons need every line only once, and the LinkedHashSet
+        // keeps them in the order of their appearance in the source.
+        ArrayList<SourceLine> refs = new ArrayList<>(new LinkedHashSet<>(entry.getReferences()));
+
+        switch (group) {
+            case ReportVariables.LIST_GLOBAL:
+                mainWindow.setReferenceLabel(1, name, "(used "+entry.getCount()+" times in "+refs.size()+" lines)");
+                break;
+            case ReportVariables.LIST_LOCAL:
+                mainWindow.setReferenceLabel(2, name, "(used "+entry.getCount()+" times in "+refs.size()+" lines)");
+                break;
+            case ReportVariables.LIST_ROUTINE:
+                mainWindow.setReferenceLabel(0, name, "");
+                break;
+        }
+        mainWindow.createRefButtons(refs);
+    }
+
     // ---------------------------------------------------------------------------------------- 
     //                          task helper functions
     // ---------------------------------------------------------------------------------------- 

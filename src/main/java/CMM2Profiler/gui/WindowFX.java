@@ -17,8 +17,6 @@
  */
 package CMM2Profiler.gui;
 
-import static java.lang.Float.floatToIntBits;
-
 import java.io.IOException;
 import java.net.URL;
 import javafx.fxml.FXMLLoader;

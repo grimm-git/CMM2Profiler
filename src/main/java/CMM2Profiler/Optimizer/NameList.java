@@ -66,7 +66,6 @@ public class NameList
             entry = new Variable(name);
             names.put(key, entry);
         }
-        entry.incCount();
         return entry;
     }
 
@@ -164,9 +163,9 @@ public class NameList
      * Sets the usage counter of every name back to zero. The names themselves
      * stay in the list, so the counting may be repeated.
      */
-    public void clearCounts()
+    public void clearReferences()
     {
         for (Variable entry : names.values())
-            entry.resetCount();
+            entry.clearReferences();
     }
 }

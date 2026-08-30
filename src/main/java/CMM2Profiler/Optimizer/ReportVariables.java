@@ -16,9 +16,7 @@
  */
 package CMM2Profiler.Optimizer;
 
-import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -26,6 +24,7 @@ import java.util.Locale;
 import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import static CMM2Profiler.core.MMBasic.*;
 import CMM2Profiler.core.Source;
 import CMM2Profiler.core.SourceLine;
 
@@ -97,6 +96,22 @@ public class ReportVariables
     private static final Pattern PASSING =
             Pattern.compile("^(byref|byval)\\b\\s*", Pattern.CASE_INSENSITIVE);
 
+    /**
+     * CSS class of a clickable variable name in a report. The controller looks
+     * for this class to recognise a click on a name, so both sides have to use
+     * the same string.
+     */
+    public final static String VAR_CLASS = "var";
+
+    /**
+     * Values of the data-list attribute of a clickable name. The same name may
+     * be a local variable in one routine and a global one everywhere else, so
+     * the group has to travel with the name to find the right entry again.
+     */
+    public final static String LIST_GLOBAL  = "global";
+    public final static String LIST_LOCAL   = "local";
+    public final static String LIST_ROUTINE = "routine";
+
     /** Geometry of the SVG histograms, all values in pixels */
     private final static int BAR_WIDTH    = 26;
     private final static int PLOT_HEIGHT  = 180;
@@ -109,22 +124,22 @@ public class ReportVariables
     /** The counter axis ends on a multiple of this value */
     private final static int AXIS_UNIT    = 5;
 
-    /** Nominal width of a report in characters, used to choose the columns */
-    private final static int TABLE_WIDTH  = 100;
-
-    /** Range the number of columns of a name table is kept in */
-    private final static int MIN_COLUMNS  = 3;
-    private final static int MAX_COLUMNS  = 8;
-
     /** Style of the generated blocks, added to the head of the template */
     private final static String REPORTSTYLE =
           "<style type=\"text/css\">\n"
         + "svg.histogram { display:block; margin:4px auto 16px auto; }\n"
-        + "p.summary { color:#555; font-size:90%; margin:2px 0 8px 0; }\n"
-        + "table.varlist { width:100%; table-layout:fixed; border-collapse:collapse;"
-        + " font-size:90%; margin-bottom:24px; }\n"
+        + "p.summary { color:#555; font-size:90%; margin:6px 0 8px 0; }\n"
+        + "table.varlist { width:100%; table-layout:fixed; border:0; border-collapse:collapse;"
+        + " border:0; font-size:90%; margin-bottom:24px; }\n"
         + "table.varlist td { border:0; padding:1px 8px 1px 0; white-space:nowrap;"
         + " overflow:hidden; text-overflow:ellipsis; }\n"
+        + "table.lenlist { width:100%; border-collapse:collapse; border:0;"
+        + " font-size:90%; margin-bottom:24px; }\n"
+        + "table.lenlist td { border:0; padding:2px 8px 2px 0; vertical-align:top; }\n"
+        + "table.lenlist td.len { width:3em; text-align:right; font-weight:bold;"
+        + " white-space:nowrap; }\n"
+        + "span.var { cursor:pointer; color:#2a6099; }\n"
+        + "span.var:hover { text-decoration:underline; }\n"
         + "</style>\n";
 
     public ReportVariables()  { }
@@ -146,65 +161,17 @@ public class ReportVariables
     {
         extract(src);
 
-        File file = new File(template);
-        String html = Files.readString(file.toPath());
+        String html = ReportPage.load(template, REPORTSTYLE);
 
-        // loadContent() hands the page to the browser without a document URL,
-        // so the relative link to the style sheet of the template would not be
-        // resolved any more. The base address puts that back.
-        html = injectHead(html, "<base href=\"" + file.getParentFile().toURI() + "\"/>\n"
-                              + REPORTSTYLE);
 
-        html = inject(html, "histogram_global",   buildHistogram(globals));
-        html = inject(html, "varlist_global",     buildTable(globals));
-        html = inject(html, "histogram_local",    buildHistogram(locals));
-        html = inject(html, "varlist_local",      buildTable(locals));
-        html = inject(html, "histogram_routines", buildHistogram(routines));
-        html = inject(html, "varlist_routines",   buildTable(routines));
+        html = ReportPage.inject(html, "histogram_global",   buildHistogram(globals));
+        html = ReportPage.inject(html, "varlist_global",     buildLengthTable(globals, LIST_GLOBAL));
+        html = ReportPage.inject(html, "histogram_local",    buildHistogram(locals));
+        html = ReportPage.inject(html, "varlist_local",      buildLengthTable(locals, LIST_LOCAL));
+        html = ReportPage.inject(html, "histogram_routines", buildHistogram(routines));
+        html = ReportPage.inject(html, "varlist_routines",   buildLengthTable(routines, LIST_ROUTINE));
 
         return html;
-    }
-
-    /**
-     * Adds text at the very beginning of the head of the template. The base
-     * address has to stand in front of the first relative link of the page,
-     * otherwise the browser resolves that link without it and the style sheet
-     * of the template is not found.
-     *
-     * @param html    the template
-     * @param content text to add
-     * @return the template with the extended head
-     */
-    private String injectHead(String html, String content)
-    {
-        int pos = html.toLowerCase(Locale.US).indexOf("<head");
-        if (pos == -1) return content+html;
-
-        pos = html.indexOf('>', pos);
-        if (pos == -1) return content+html;
-
-        return html.substring(0, pos+1) + "\n" + content + html.substring(pos+1);
-    }
-
-    /**
-     * Fills one of the marked divs of the template. A template that does not
-     * carry the div is left alone, so a template may show a part of the report
-     * only.
-     *
-     * @param html    the template
-     * @param id      id of the div to fill
-     * @param content HTML to put into the div
-     * @return the template with the filled div
-     */
-    private String inject(String html, String id, String content)
-    {
-        Pattern marker = Pattern.compile("<div\\s+id=['\"]"+Pattern.quote(id)+"['\"]\\s*>\\s*</div>",
-                                         Pattern.CASE_INSENSITIVE);
-
-        Matcher m = marker.matcher(html);
-        if (!m.find()) return html;
-
-        return m.replaceFirst(Matcher.quoteReplacement("<div id=\""+id+"\">"+content+"</div>"));
     }
 
     /**
@@ -219,8 +186,7 @@ public class ReportVariables
     {
         StringBuilder svg = new StringBuilder();
 
-        svg.append("<h2>").append(escape(list.getTitle())).append("</h2>\n")
-           .append("<p class=\"summary\">").append(list.size()).append(" names, ")
+        svg.append("<p class=\"summary\">").append(list.size()).append(" names, ")
            .append(list.getTotalCount()).append(" usages, longest name ")
            .append(list.getMaxLength()).append(" characters</p>\n");
 
@@ -294,29 +260,6 @@ public class ReportVariables
     }
 
     /**
-     * Chooses the number of columns of a name table. A group of long names
-     * gets fewer columns than a group of short ones, so that its entries still
-     * fit into their column. The calculation works with a nominal report
-     * width, because the real width of the view is not known while the report
-     * is built.
-     *
-     * @param list     one of the three name groups
-     * @param maxCount highest usage counter of the group
-     * @return number of columns of the table
-     */
-    private int countColumns(NameList list, int maxCount)
-    {
-        // room for "name (123)" plus one character of gap to the next column
-        int cell = list.getMaxLength() + Integer.toString(maxCount).length() + 4;
-
-        int columns = TABLE_WIDTH / cell;
-        if (columns < MIN_COLUMNS) columns = MIN_COLUMNS;
-        if (columns > MAX_COLUMNS) columns = MAX_COLUMNS;
-
-        return columns;
-    }
-
-    /**
      * Rounds the top of the counter axis up, so that every grid line carries a
      * round number. The distance between two grid lines is a multiple of five,
      * which makes the labels multiples of five or of ten.
@@ -333,65 +276,81 @@ public class ReportVariables
     }
 
     /**
-     * Builds the table of all names of one group. Every entry carries the
-     * number of its usages in brackets. The most used name comes first, as a
-     * long name that is used often costs the most time.<p>
+     * Builds a table that groups the names of one group by their length. The
+     * first column holds the number of characters, the second one the names of
+     * that length as a comma separated list. The longest names come first, so
+     * the entries worth shortening stand at the top.
      *
-     * The table has no borders and no heading, it only spreads the names over
-     * several columns. It is laid out with a fixed table layout and a width of
-     * one hundred percent, so the columns share the width of the view and grow
-     * with it.
-     *
-     * @param list one of the three name groups
+     * @param list  one of the three name groups
+     * @param group  value of the data-list attribute of the names
      * @return the table as HTML
      */
-    private String buildTable(NameList list)
+    private String buildLengthTable(NameList list, String group)
     {
         if (list.isEmpty()) return "";
 
-        ArrayList<Variable> names = list.getSorted(Variable.CompCount);
+        // Walking the names in alphabetical order builds every line of the
+        // table in alphabetical order as well.
+        TreeMap<Integer,StringBuilder> byLength = new TreeMap<>();
 
-        // The list is sorted by the counter, so the first entry carries the
-        // highest one and therefore the widest bracket.
-        int columns = countColumns(list, names.get(0).getCount());
-        int rows    = (names.size()+columns-1) / columns;
+        for (Variable entry : list.getSorted(Variable.CompName)) {
+            StringBuilder line = byLength.get(entry.getLength());
+            if (line == null) {
+                line = new StringBuilder();
+                byLength.put(entry.getLength(), line);
+            }
+
+            if (line.length() > 0) line.append(", ");
+            line.append(nameSpan(entry.getName(), group));
+        }
 
         StringBuilder html = new StringBuilder();
-        html.append("<table class=\"varlist\">\n");
+        html.append("<table class=\"lenlist\">\n");
 
-        for (int row=0 ; row < rows ; row++) {
-            html.append("<tr>");
-
-            // The names are filled in column by column, so the list is read
-            // from top to bottom and not from left to right.
-            for (int col=0 ; col < columns ; col++) {
-                int idx = col*rows + row;
-
-                html.append("<td>");
-                if (idx < names.size()) {
-                    Variable entry = names.get(idx);
-                    html.append(escape(entry.getName()))
-                        .append(" (").append(entry.getCount()).append(")");
-                }
-                html.append("</td>");
-            }
-            html.append("</tr>\n");
-        }
+        for (int length : byLength.descendingKeySet())
+            html.append("<tr><td class=\"len\">").append(length)
+                .append("</td><td>").append(byLength.get(length))
+                .append("</td></tr>\n");
 
         return html.append("</table>\n").toString();
     }
 
     /**
-     * @param text any text
-     * @return the text with the HTML special characters replaced
+     * Wraps a name into a clickable element. The name is carried in a data
+     * attribute as well, so the controller does not have to parse the text of
+     * the element.
+     *
+     * @param name  name of a variable, a sub or a function
+     * @param group name group the name belongs to
+     * @return the name as a HTML element
      */
-    private String escape(String text)
+    private String nameSpan(String name, String group)
     {
-        return text.replace("&", "&amp;")
-                   .replace("<", "&lt;")
-                   .replace(">", "&gt;")
-                   .replace("\"", "&quot;");
+        String text = ReportPage.escape(name);
+        return "<span class=\""+VAR_CLASS+"\" data-list=\""+group+"\" data-name=\""+text
+             + "\">"+text+"</span>";
     }
+
+    /**
+     * Looks a name up again after it was clicked in the report. The group is
+     * needed because the same name may sit in two lists at once.
+     *
+     * @param group one of LIST_GLOBAL, LIST_LOCAL or LIST_ROUTINE
+     * @param name  name of a variable, a sub or a function
+     * @return the entry or null, if the name is unknown
+     */
+    public Variable findVariable(String group, String name)
+    {
+        if (name == null || group == null) return null;
+
+        switch (group) {
+            case LIST_GLOBAL:  return globals.get(name);
+            case LIST_LOCAL:   return locals.get(name);
+            case LIST_ROUTINE: return routines.get(name);
+            default:           return null;
+        }
+    }
+
 
     public NameList getGlobals()  { return globals;  }
     public NameList getLocals()   { return locals;   }
@@ -450,9 +409,9 @@ public class ReportVariables
      */
     private void countUsage(Source src)
     {
-        globals.clearCounts();
-        locals.clearCounts();
-        routines.clearCounts();
+        globals.clearReferences();
+        locals.clearReferences();
+        routines.clearReferences();
         closeScope();
 
         for (int n=0 ; n < src.getSourceLineCnt() ; n++) {
@@ -466,7 +425,7 @@ public class ReportVariables
             if (srcLine.isFunction())    enterScope(extractName(srcLine.getFunctionName()));
 
             for (String name : splitNames(code))
-                countName(name);
+                countName(name, srcLine);
         }
         closeScope();
     }
@@ -475,9 +434,10 @@ public class ReportVariables
      * Books one usage of a name. A name that belongs to none of the three lists
      * is a keyword or a function of MMBasic itself and is ignored.
      *
-     * @param text name as it was found in the source code
+     * @param text    name as it was found in the source code
+     * @param srcLine source line the name was found in
      */
-    private void countName(String text)
+    private void countName(String text, SourceLine srcLine)
     {
         String name = extractName(text);
         if (name.isEmpty()) return;
@@ -490,7 +450,7 @@ public class ReportVariables
         if (scopeLocals.contains(key)) entry = locals.get(key);
         else if ((entry=routines.get(key)) == null) entry = globals.get(key);
 
-        if (entry != null) entry.incCount();
+        if (entry != null) entry.addReference(srcLine);
     }
 
     /**
@@ -603,10 +563,19 @@ public class ReportVariables
                 return;
 
             // The condition of an IF holds comparisons and not assignments.
-            // Only the statement behind the THEN is of interest.
+            // Only the statements behind the THEN are of interest. A one line
+            // IF may carry an ELSE branch, which holds a statement of its own.
             case "if":
             case "elseif":
-                scanStatement(behindThen(code));
+                String tail = behindThen(code);
+                int split = findWord(tail, "else");
+
+                if (split == -1)
+                    scanStatement(tail);
+                else {
+                    scanStatement(tail.substring(0, split));
+                    scanStatement(tail.substring(split+4));
+                }
                 return;
 
             case "else":
@@ -663,7 +632,7 @@ public class ReportVariables
 
         String key = name.toLowerCase(Locale.US);
         if (key.equals(scopeName.toLowerCase(Locale.US))) return;  // function return value
-        if (key.startsWith("mm."))                        return;  // read only system variable
+        if (key.startsWith("mm."))                return;  // read only system variable
         if (scopeLocals.contains(key))                    return;  // a known local variable
 
         globals.add(name);
@@ -703,171 +672,13 @@ public class ReportVariables
         return name;
     }
 
-    /**
-     * @param code a statement
-     * @return the first word of the statement in lower case
-     */
-    private String leadingKeyword(String code)
-    {
-        int end=0;
-        while (end < code.length() && Character.isLetter(code.charAt(end))) end++;
 
-        return code.substring(0, end).toLowerCase(Locale.US);
-    }
 
-    private String stripKeyword(String code)
-    {
-        return code.substring(leadingKeyword(code).length()).trim();
-    }
 
-    /**
-     * @param code an IF or ELSEIF statement
-     * @return the statement behind the THEN, empty for a multi line IF
-     */
-    private String behindThen(String code)
-    {
-        int pos = findWord(code, "then");
-        return pos==-1 ? "" : code.substring(pos+4).trim();
-    }
 
-    /**
-     * Searches the position of the "=" of an assignment. The comparisons "&lt;=",
-     * "&gt;=" and "&lt;&gt;" are no assignments, and an "=" inside a string or inside
-     * a pair of brackets belongs to an expression and not to the statement.
-     *
-     * @param code a statement
-     * @return position of the assignment operator or -1 if there is none
-     */
-    private int findAssignment(String code)
-    {
-        boolean inString=false;
-        int depth=0;
 
-        for (int n=0 ; n < code.length() ; n++) {
-            char chr = code.charAt(n);
 
-            if (chr=='"') inString = !inString;
-            if (inString) continue;
 
-            if (chr=='(') depth++;
-            else if (chr==')') depth--;
-            else if (chr=='=' && depth==0) {
-                char prev = n>0 ? code.charAt(n-1) : ' ';
-                char next = n+1<code.length() ? code.charAt(n+1) : ' ';
-                if (prev!='<' && prev!='>' && prev!='=' && next!='=')
-                    return n;
-            }
-        }
-        return -1;
-    }
 
-    /**
-     * Searches a keyword outside of strings and brackets.
-     *
-     * @param code a statement
-     * @param word keyword to look for, lower case
-     * @return position of the keyword or -1 if it is not there
-     */
-    private int findWord(String code, String word)
-    {
-        String text = code.toLowerCase(Locale.US);
-        boolean inString=false;
-        int depth=0;
 
-        for (int n=0 ; n < text.length() ; n++) {
-            char chr = text.charAt(n);
-
-            if (chr=='"') inString = !inString;
-            if (inString) continue;
-
-            if (chr=='(') depth++;
-            else if (chr==')') depth--;
-            else if (depth==0 && text.startsWith(word, n)
-                    && !isNamePart(text, n-1) && !isNamePart(text, n+word.length()))
-                return n;
-        }
-        return -1;
-    }
-
-    private boolean isNamePart(String text, int pos)
-    {
-        if (pos < 0 || pos >= text.length()) return false;
-
-        return isNameChar(text.charAt(pos));
-    }
-
-    /**
-     * @param chr a character
-     * @return true, if the character may be part of a MMBasic name
-     */
-    private boolean isNameChar(char chr)
-    {
-        return Character.isLetterOrDigit(chr) || chr=='_' || chr=='.';
-    }
-
-    /**
-     * @param code a statement
-     * @param open position of an opening bracket
-     * @return position of the matching closing bracket or -1
-     */
-    private int findClosingParen(String code, int open)
-    {
-        boolean inString=false;
-        int depth=0;
-
-        for (int n=open ; n < code.length() ; n++) {
-            char chr = code.charAt(n);
-
-            if (chr=='"') inString = !inString;
-            if (inString) continue;
-
-            if (chr=='(') depth++;
-            else if (chr==')' && --depth==0) return n;
-        }
-        return -1;
-    }
-
-    /**
-     * Splits a source line into its statements. MMBasic separates statements of
-     * one line by a colon.
-     *
-     * @param line one line of source code, without its comment
-     * @return list of statements, never empty
-     */
-    private ArrayList<String> splitStatements(String line)
-    {
-        return splitTopLevel(line, ':');
-    }
-
-    /**
-     * Splits a text at a separator, ignoring separators inside strings and
-     * inside brackets.
-     *
-     * @param text      text to split
-     * @param separator character to split at
-     * @return list of the parts, never empty
-     */
-    private ArrayList<String> splitTopLevel(String text, char separator)
-    {
-        ArrayList<String> parts = new ArrayList<>();
-        boolean inString=false;
-        int depth=0;
-        int start=0;
-
-        for (int n=0 ; n < text.length() ; n++) {
-            char chr = text.charAt(n);
-
-            if (chr=='"') inString = !inString;
-            if (inString) continue;
-
-            if (chr=='(') depth++;
-            else if (chr==')') depth--;
-            else if (chr==separator && depth==0) {
-                parts.add(text.substring(start, n).trim());
-                start = n+1;
-            }
-        }
-        parts.add(text.substring(start).trim());
-        return parts;
-    }
 }

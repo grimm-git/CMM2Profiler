@@ -19,6 +19,7 @@ package CMM2Profiler.utils;
 import java.io.IOException;
 import javafx.concurrent.WorkerStateEvent;
 import javafx.event.EventHandler;
+import CMM2Profiler.Optimizer.ReportIncrement;
 import CMM2Profiler.Optimizer.ReportIntro;
 import CMM2Profiler.Optimizer.ReportVariables;
 import CMM2Profiler.Optimizer.Reports;
@@ -54,6 +55,7 @@ public class ErrandFactory
     }
     
     public static Errand<String> createReportErrand(Reports report, Source src,
+                                        ReportVariables vars, ReportIncrement incs,
                                         EventHandler<WorkerStateEvent> onSuccess,
                                         EventHandler<WorkerStateEvent> onFailure)
     {
@@ -65,11 +67,13 @@ public class ErrandFactory
                         ReportIntro RI = new ReportIntro();
                         return RI.create(src,report.getTemplate());
                     case VARIABLES:
-                        ReportVariables RV = new ReportVariables();
-                        return RV.create(src,report.getTemplate());
+                        // the caller keeps the object, its name lists are
+                        // needed again when a name in the report is clicked
+                        return vars.create(src,report.getTemplate());
                     case INC:
-//                        ReportINC RI = new ReportINC();
-//                        return RI.create(src,report.getTemplate());
+                        // the caller keeps the object, its statements are
+                        // needed again when one of them is clicked
+                        return incs.create(src,report.getTemplate());
                     default:
                         return null;
                     }
@@ -82,9 +86,10 @@ public class ErrandFactory
     }
     
     public static void execErrandCreateReport(Reports report, Source src,
+                                        ReportVariables vars, ReportIncrement incs,
                                         EventHandler<WorkerStateEvent> onSuccess,
                                         EventHandler<WorkerStateEvent> onFailure)
     {
-        createReportErrand(report, src, onSuccess, onFailure).execute();
+        createReportErrand(report, src, vars, incs, onSuccess, onFailure).execute();
     }
 }

@@ -151,8 +151,9 @@
                            <children>
                               <HBox>
                                  <children>
-                                    <Label text="References to Function :" />
-                                    <Label fx:id="labelRefFunctionName" styleClass="refFuncName" text=" " />
+                                    <Label fx:id="labelRefType" text="Reference to" />
+                                    <Label fx:id="labelRefName" styleClass="refFuncName" />
+                                    <Label fx:id="labelRefExt" />
                                  </children>
                                  <VBox.margin>
                                     <Insets bottom="4.0" left="4.0" right="4.0" top="4.0" />

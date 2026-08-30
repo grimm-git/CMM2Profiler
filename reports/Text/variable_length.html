@@ -9,16 +9,80 @@
 <div class='dokuwiki'>
 <h1 id='variable_length'>Variable length</h1>
 <div class="level1">
-<p>
-<b>ProjectMaster</b>™ is a tool to manage projects and keep track of them. It is designed to collect various basic information and allow to do certain alalysis on the collected data. In this configuration iis supports the work of a lead engineer.
-</p>
+<p>MMBasic creates and maintains variables on the fly, either with the first usage or when they are declared with DIM, CONST, LOCAL or STATIC.</p>
+<p>Although, MMBasic uses a hash-table to accelerate finding variables, it still consumes time. And the length of the variable name has an influence.
+First, the hash value consideres each character of the name and then the name is compared with all ather names with the same hash value.</p>
+<p>The time to find a single variable might be very short but if you use hundereds of variables in a program and in loops,
+they sum up to a reasonable part of program execution time.</p>
+
+<h2>Performance Potential</h2>
+<div class="level2">
+<p>The following data have been measured on an Color Maximite 2 G2 (480MHz) with firmware 5.07.01.</p>
+<p><b>Test conditions:</b> Variable table was filled with 55 variables between 1 and 32 characters of length.
+The time of 100.000 variable assignments were measured and the average time was taken. This reduced the
+influence of necessary overhead for the time measurement to an neglectable fraction.</p>
+<p>With each variable length two runs were done. One with a variable name that has a unique first
+character and a second one with a variable name that starts with the same letter than at least 10 other variables.</p>
+
+<h3>Access Time Data</h3>
+<div class="level3">
+<p>The following table shows the measurements. The optimum is a single character variable that starts with an unique letter.
+The access time of 3.48 µs is the baseline for performance penalty reported in percent.</p>
+<p><table style="margin:0 10px 10px 5px;" class="medialeft centeralign">
+<tr><th>Length</th><th>access time</th><th class="centeralign">penalty</th></tr
+<tr><td>1</td><td>3.48 - 3.87 µs</td><td>0 - 10%</td></tr>
+<tr><td>2</td><td>3.57 - 3.96 µs</td><td>2 - 12%</td></tr>
+<tr><td>3</td><td>3.68 - 4,04 µs</td><td>5 - 13%</td></tr>
+<tr><td>4</td><td>3.72 - 4.10 µs</td><td>6 - 15%</td></tr>
+<tr><td>6</td><td>3.89 - 4.26 µs</td><td>10 - 18%</td></tr>
+</table></p>
+<p><table style="margin:0 5px 10px 5px;" class="medialeft centeralign">
+<tr><th>Length</th><th>access time</th><th class="centeralign">penalty</th></tr
+<tr><td>8</td><td>4.06 - 4.38 µs</td><td>14 - 20%</td></tr>
+<tr><td>12</td><td>4.26 - 4,63 µs</td><td>18 - 25%</td></tr>
+<tr><td>18</td><td>4.68 - 5.01 µs</td><td>25 - 30%</td></tr>
+<tr><td>24</td><td>5.02 - 5.42 µs</td><td>30 - 35%</td></tr>
+<tr><td>32</td><td>5.57 - 5.98 µs</td><td>37 - 41%</td></tr>
+</table></p></div>
+
+<h3>Chart Variable Length vs. Access Time</h3>
+<div class="level3">
+<p>This chart shows the relationship between variable length and access time.The two lines show the tolerance range.</p>
+<img src="../Images/chart_varlength_time.png" width="640" class="mediacenter" />
+</div>
+
+<h3>Chart Variable Length vs. Performance Drag</h3>
+<div class="level3">
+<p>This chart show the relationship between variable length and performance drag as well with the tolerance band.</p>
+<img src="../Images/chart_varlength_percent.png" width="640" class="mediacenter" />
+</div>
+
+</div>
+
+<h2>Global Variables</h2>
+<div class="level2">
+<p>Let's have a look on the variable lengths in your program. The following histogram gives you an overview.</p>
 <div id='histogram_global'></div>
 <div id='varlist_global'></div>
+</div>
 
+<h2>Local Variables</h2>
+<div class="level2">
+<p>Local variables are only valid within a SUB or a FUNCTION and they are kept in a seperate list. See how your program make use of them.</p>
 <div id='histogram_local'></div>
 <div id='varlist_local'></div>
+</div>
 
+<h2>Function and Sub names</h2>
+<div class="level2">
+<p>Functions and sub-names are stored in a third list but handled the same way as variables.
+Good programming style is if function names describe what it is actually doing.
+This could be a trap in regards of performance, because long function names need more time to be called than short names.</p>
+<p>The imortant thing is to keep a balance between readable code and performance optimisation. It does not make any
+sense to use one leter functions.</p>
 <div id='histogram_routines'></div>
 <div id='varlist_routines'></div>
+</div>
+
 </div>
 </div></body></html>

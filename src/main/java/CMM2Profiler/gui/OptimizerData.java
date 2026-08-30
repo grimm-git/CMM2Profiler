@@ -19,6 +19,8 @@ package CMM2Profiler.gui;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import CMM2Profiler.Optimizer.ReportIncrement;
+import CMM2Profiler.Optimizer.ReportVariables;
 import CMM2Profiler.Optimizer.Reports;
 import CMM2Profiler.core.Source;
 
@@ -27,6 +29,11 @@ public class OptimizerData
     private final ObservableList<String> ReportList =  FXCollections.observableArrayList();
     protected Source mainSource = new Source();   // copy from main class
 
+    // Kept alive after the report was built, so that a click on a name in the
+    // report can look the name up again and reach its source line references.
+    private final ReportVariables reportVars = new ReportVariables();
+    private final ReportIncrement reportInc  = new ReportIncrement();
+
     public OptimizerData()
     {
         for (Reports item : Reports.values())
@@ -34,4 +41,6 @@ public class OptimizerData
     }
 
     public ObservableList<String> getReportList() { return ReportList; }
+    public ReportVariables getReportVars()        { return reportVars; }
+    public ReportIncrement getReportInc()         { return reportInc;  }
 }
