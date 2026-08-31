@@ -106,10 +106,8 @@ public class Increment
     public int        getIndex()      { return index; }
 
     public String     getTarget()     { return target; }
-    public String     getExpression() { return expression; }
     public String     getStatement()  { return statement; }
     public Type       getType()       { return type; }
-    public boolean    isAdd()         { return type==Type.ADD; }
     public SourceLine getSourceLine() { return srcLine; }
     public int        getLineNo()     { return srcLine.getLineNo(); }
     public int        getCalls()      { return srcLine.getCalls(); }

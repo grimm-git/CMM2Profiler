@@ -1,0 +1,68 @@
+svg.histogram {
+    display:block;
+    margin:4px auto 16px auto;
+}
+table.lenlist {
+    width:100%;
+    border-collapse:collapse;
+    border:0;
+    font-size:90%;
+    margin-bottom:24px;
+}
+table.lenlist td {
+    border:0;
+    padding:2px 8px 2px 0;
+    vertical-align:top;
+}
+table.lenlist td.len {
+    width:3em;
+    text-align:right;
+    font-weight:bold;
+    white-space:nowrap;
+}
+span.var {
+    cursor:pointer;
+    color:#2a6099;
+}
+span.var:hover {
+    text-decoration:underline;
+}
+
+p.summary {
+    color:#555;
+    font-size:90%;
+    margin:2px 0 8px 0;
+}
+table.inclist {
+    width:100%;
+    border-collapse:collapse;
+    border:0;
+    font-size:90%;
+    margin-bottom:24px;
+}
+table.inclist th {
+    text-align:left;
+    border:0;
+    border-bottom:1px solid #ccc;
+    padding:2px 12px 2px 0;
+}
+table.inclist td {
+    border:0;
+    padding:1px 12px 1px 0;
+    vertical-align:top;
+}
+table.inclist td.num {
+    text-align:right;
+    white-space:nowrap;
+}
+table.inclist span {
+    font-family:monospace;
+}
+table.inclist span.inc {
+    cursor:pointer;
+    color:#2a6099;
+}
+table.inclist span.inc:hover {
+    text-decoration:underline;
+}
+

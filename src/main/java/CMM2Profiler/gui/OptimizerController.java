@@ -38,6 +38,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.events.EventTarget;
 import CMM2Profiler.Optimizer.Increment;
+import CMM2Profiler.Optimizer.Report;
 import CMM2Profiler.Optimizer.ReportIncrement;
 import CMM2Profiler.Optimizer.ReportVariables;
 import CMM2Profiler.Optimizer.Reports;
@@ -114,7 +115,6 @@ extends WindowFX
                         Reports rep=Reports.findReports(newVal);
 
                         execErrandCreateReport(rep, dataModel.mainSource,
-                                dataModel.getReportVars(), dataModel.getReportInc(),
                                 this::reportSucceeded, this::taskFailed);
                     }
                 });
@@ -182,6 +182,8 @@ extends WindowFX
      * Looks the clicked statement up in the report data and hands its source
      * line to the main window, which turns it into a jump button.
      *
+     * TODO: Encapsulate the function with try..catch. getReportInc() needs to throw an exception if the type is wrong
+     * 
      * @param index position of the statement in the report
      */
     private void showStatement(String index)
@@ -211,6 +213,8 @@ extends WindowFX
     /**
      * Looks the clicked name up in the report data and hands its source line
      * references to the main window, which turns them into jump buttons.
+     *
+     * TODO: Encapsulate the function with try..catch. getReportVars() needs to throw an exception if the type is wrong
      *
      * @param group name group the clicked name belongs to
      * @param name  name of the variable, the sub or the function
@@ -252,17 +256,17 @@ extends WindowFX
     // ---------------------------------------------------------------------------------------- 
     private void reportSucceeded(WorkerStateEvent ev)
     {
-        String report = (String) ev.getSource().getValue();
+        Report rep = (Report) ev.getSource().getValue();
 
-        if (report == null) {
+        if (rep != null) {
+            dataModel.setReport(rep);
+
+            // The report is a complete HTML page and carries its own base address,
+            // so loadContent() finds the style sheet of the template.
+            viewReport.getEngine().loadContent(rep.getReportHTML(), "text/html");
+            showSuccess("Report successfully created!");
+        } else
             showError("This report is not available yet.");
-            return;
-        }
-
-        // The report is a complete HTML page and carries its own base address,
-        // so loadContent() finds the style sheet of the template.
-        viewReport.getEngine().loadContent(report, "text/html");
-        showSuccess("Report successfully created!");
     }
 
     private void taskFailed(WorkerStateEvent ev)

@@ -16,10 +16,10 @@
  */
 package CMM2Profiler.Optimizer;
 
+import CMM2Profiler.core.Source;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -30,15 +30,29 @@ import java.util.regex.Pattern;
  *
  * @author Matthias Grimm <codingjoker@web.de>
  */
-public class Report
+public abstract class Report
 {
     private StringBuilder ReportBuilder;
 
+    private static final Pattern HEAD = Pattern.compile("<head", Pattern.CASE_INSENSITIVE);
 
-    private Report()
+    protected Report()
     {
         ReportBuilder = new StringBuilder();
     }
+
+    /**
+     * Builds the report. Every report scans the source code its own way, loads
+     * its template and fills the marked divs of it. The result is picked up
+     * with {@link #getReportHTML()}.<p>
+     *
+     * The method runs in a worker thread and must not touch the GUI.
+     *
+     * @param src      source code of a MMBasic program
+     * @param template path of the template of this report
+     * @throws IOException if the template cannot be read
+     */
+    public abstract void create(Source src, String template) throws IOException;
 
     public String getReportHTML()
     {
@@ -55,34 +69,31 @@ public class Report
      * page, so it goes to the very beginning of the head.
      *
      * @param template path of the template
-     * @param style    style of the generated blocks, added to the head
-     * @return the template, ready to be filled
      * @throws IOException if the template cannot be read
      */
-    protected String load(String template, String style) throws IOException
+    protected void load(String template) throws IOException
     {
         File file = new File(template);
-        String html = Files.readString(file.toPath());
+        ReportBuilder.setLength(0); // clear ReportBuffer
+        ReportBuilder.append(Files.readString(file.toPath()));
 
-        return injectHead(html, "<base href=\"" + file.getParentFile().toURI() + "\"/>\n" + style);
+        injectHead("<base href=\"" + file.getParentFile().toURI() + "\"/>\n");
     }
 
     /**
      * Adds text at the very beginning of the head of a template.
      *
-     * @param html    the template
      * @param content text to add
-     * @return the template with the extended head
      */
-    protected String injectHead(String html, String content)
+    protected void injectHead(String content)
     {
-        int pos = html.toLowerCase(Locale.US).indexOf("<head");
-        if (pos == -1) return content+html;
+        Matcher m = HEAD.matcher(ReportBuilder);
+        if (!m.find()) { ReportBuilder.insert(0, content); return; }
 
-        pos = html.indexOf('>', pos);
-        if (pos == -1) return content+html;
+        int pos = ReportBuilder.indexOf(">", m.start());   // plain indexOf is fine, '>' has no case
+        if (pos == -1) { ReportBuilder.insert(0, content); return; }
 
-        return html.substring(0, pos+1) + "\n" + content + html.substring(pos+1);
+        ReportBuilder.insert(pos+1, "\n" + content);
     }
 
     /**
@@ -90,20 +101,17 @@ public class Report
      * carry the div is left alone, so a template may show a part of the report
      * only.
      *
-     * @param html    the template
      * @param id      id of the div to fill
      * @param content HTML to put into the div
-     * @return the template with the filled div
      */
-    protected String inject(String html, String id, String content)
+    protected void inject(String id, String content)
     {
         Pattern marker = Pattern.compile("<div\\s+id=['\"]"+Pattern.quote(id)+"['\"]\\s*>\\s*</div>",
                                          Pattern.CASE_INSENSITIVE);
 
-        Matcher m = marker.matcher(html);
-        if (!m.find()) return html;
-
-        return m.replaceFirst(Matcher.quoteReplacement("<div id=\""+id+"\">"+content+"</div>"));
+        Matcher m = marker.matcher(ReportBuilder);
+        if (m.find())
+            ReportBuilder.replace(m.start(), m.end(), "<div id=\""+id+"\">"+content+"</div>");
     }
 
     /**

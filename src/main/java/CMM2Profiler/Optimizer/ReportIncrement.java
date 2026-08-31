@@ -55,11 +55,11 @@ import java.util.regex.Pattern;
  * @author Matthias Grimm
  */
 public class ReportIncrement
+extends Report
 {
     /**
      * CSS class of a clickable statement in a report. The controller looks for
-     * this class to recognise a click, so both sides have to use the same
-     * string.
+     * this class to recognise a click, so both sides have to use the same string.
      */
     public final static String INC_CLASS = "inc";
 
@@ -81,21 +81,6 @@ public class ReportIncrement
 
     /** Names that hold a string and can therefore not be counted with INC */
     private final HashSet<String> stringNames = new HashSet<>();
-
-    /** Style of the generated blocks, added to the head of the template */
-    private final static String REPORTSTYLE =
-          "<style type=\"text/css\">\n"
-        + "p.summary { color:#555; font-size:90%; margin:2px 0 8px 0; }\n"
-        + "table.inclist { width:100%; border-collapse:collapse; border:0;"
-        + " font-size:90%; margin-bottom:24px; }\n"
-        + "table.inclist th { text-align:left; border:0; border-bottom:1px solid #ccc;"
-        + " padding:2px 12px 2px 0; }\n"
-        + "table.inclist td { border:0; padding:1px 12px 1px 0; vertical-align:top; }\n"
-        + "table.inclist td.num { text-align:right; white-space:nowrap; }\n"
-        + "table.inclist span { font-family:monospace; }\n"
-        + "table.inclist span.inc { cursor:pointer; color:#2a6099; }\n"
-        + "table.inclist span.inc:hover { text-decoration:underline; }\n"
-        + "</style>\n";
 
     private final ArrayList<Increment> increments = new ArrayList<>();
 
@@ -123,15 +108,14 @@ public class ReportIncrement
      *
      * @param src      source code of a MMBasic program
      * @param template path of the template, relative to the report folder
-     * @return the finished report as one HTML string
      * @throws IOException if the template cannot be read
      */
-    public String create(Source src, String template) throws IOException
+    public void create(Source src, String template) throws IOException
     {
         extract(src);
 
-        String html = ReportPage.load(template, REPORTSTYLE);
-        return ReportPage.inject(html, "increments", buildTable());
+        load(template);
+        inject("increments", buildTable());
     }
 
     /**
@@ -189,9 +173,9 @@ public class ReportIncrement
             html.append("</td><td class=\"num\">").append(entry.getCalls())
                 .append("</td><td><span class=\"").append(INC_CLASS)
                 .append("\" data-idx=\"").append(entry.getIndex()).append("\">")
-                .append(ReportPage.escape(entry.getStatement()))
+                .append(escape(entry.getStatement()))
                 .append("</span></td><td><span>")
-                .append(ReportPage.escape(entry.getProposal()))
+                .append(escape(entry.getProposal()))
                 .append("</span></td></tr>\n");
 
         return html.append("</table>\n").toString();

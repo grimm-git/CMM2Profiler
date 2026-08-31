@@ -66,6 +66,7 @@ import CMM2Profiler.core.SourceLine;
  * @author Matthias Grimm
  */
 public class ReportVariables
+extends Report
 {
     private final NameList globals  = new NameList("Global Variables");
     private final NameList locals   = new NameList("Local Variables");
@@ -124,26 +125,6 @@ public class ReportVariables
     /** The counter axis ends on a multiple of this value */
     private final static int AXIS_UNIT    = 5;
 
-    /** Style of the generated blocks, added to the head of the template */
-    private final static String REPORTSTYLE =
-          "<style type=\"text/css\">\n"
-        + "svg.histogram { display:block; margin:4px auto 16px auto; }\n"
-        + "p.summary { color:#555; font-size:90%; margin:6px 0 8px 0; }\n"
-        + "table.varlist { width:100%; table-layout:fixed; border:0; border-collapse:collapse;"
-        + " border:0; font-size:90%; margin-bottom:24px; }\n"
-        + "table.varlist td { border:0; padding:1px 8px 1px 0; white-space:nowrap;"
-        + " overflow:hidden; text-overflow:ellipsis; }\n"
-        + "table.lenlist { width:100%; border-collapse:collapse; border:0;"
-        + " font-size:90%; margin-bottom:24px; }\n"
-        + "table.lenlist td { border:0; padding:2px 8px 2px 0; vertical-align:top; }\n"
-        + "table.lenlist td.len { width:3em; text-align:right; font-weight:bold;"
-        + " white-space:nowrap; }\n"
-        + "span.var { cursor:pointer; color:#2a6099; }\n"
-        + "span.var:hover { text-decoration:underline; }\n"
-        + "</style>\n";
-
-    public ReportVariables()  { }
-
     /**
      * Builds the complete report. The source code is scanned, the template is
      * loaded and every marked div of the template is filled with a histogram or
@@ -154,24 +135,19 @@ public class ReportVariables
      *
      * @param src      source code of a MMBasic program
      * @param template path of the template, relative to the report folder
-     * @return the finished report as one HTML string
      * @throws IOException if the template cannot be read
      */
-    public String create(Source src, String template) throws IOException
+    public void create(Source src, String template) throws IOException
     {
         extract(src);
 
-        String html = ReportPage.load(template, REPORTSTYLE);
-
-
-        html = ReportPage.inject(html, "histogram_global",   buildHistogram(globals));
-        html = ReportPage.inject(html, "varlist_global",     buildLengthTable(globals, LIST_GLOBAL));
-        html = ReportPage.inject(html, "histogram_local",    buildHistogram(locals));
-        html = ReportPage.inject(html, "varlist_local",      buildLengthTable(locals, LIST_LOCAL));
-        html = ReportPage.inject(html, "histogram_routines", buildHistogram(routines));
-        html = ReportPage.inject(html, "varlist_routines",   buildLengthTable(routines, LIST_ROUTINE));
-
-        return html;
+        load(template);
+        inject("histogram_global",   buildHistogram(globals));
+        inject("varlist_global",     buildLengthTable(globals, LIST_GLOBAL));
+        inject("histogram_local",    buildHistogram(locals));
+        inject("varlist_local",      buildLengthTable(locals, LIST_LOCAL));
+        inject("histogram_routines", buildHistogram(routines));
+        inject("varlist_routines",   buildLengthTable(routines, LIST_ROUTINE));
     }
 
     /**
@@ -326,7 +302,7 @@ public class ReportVariables
      */
     private String nameSpan(String name, String group)
     {
-        String text = ReportPage.escape(name);
+        String text = escape(name);
         return "<span class=\""+VAR_CLASS+"\" data-list=\""+group+"\" data-name=\""+text
              + "\">"+text+"</span>";
     }
