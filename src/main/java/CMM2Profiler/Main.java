@@ -38,6 +38,7 @@ extends Application
         stage.getIcons().add(mw.getImageResource("cmm2profiler_16x16.png"));
         stage.getIcons().add(mw.getImageResource("cmm2profiler_32x32.png"));
         stage.getIcons().add(mw.getImageResource("cmm2profiler_64x64.png"));
+        stage.getIcons().add(mw.getImageResource("cmm2profiler_128x128.png"));
         stage.getIcons().add(mw.getImageResource("cmm2profiler_256x256.png"));
         stage.show();
     }

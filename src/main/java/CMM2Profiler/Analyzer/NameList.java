@@ -21,7 +21,6 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.Locale;
-import java.util.Map;
 import java.util.TreeMap;
 
 /**
@@ -141,12 +140,11 @@ public class NameList
         return sum;
     }
 
-    public String getTitle()                    { return title; }
-    public int size()                           { return names.size(); }
-    public boolean isEmpty()                    { return names.isEmpty(); }
+    public String getTitle()                { return title; }
+    public int size()                       { return names.size(); }
+    public boolean isEmpty()                { return names.isEmpty(); }
     public Collection<Variable> getNames()  { return names.values(); }
-    public Map<String,Variable> getMap()    { return names; }
-    public void clear()                         { names.clear(); }
+    public void clear()                     { names.clear(); }
 
     /**
      * Removes a name from the list.
