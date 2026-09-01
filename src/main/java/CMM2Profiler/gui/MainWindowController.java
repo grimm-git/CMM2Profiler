@@ -75,7 +75,7 @@ extends WindowFX
     @FXML  private MenuItem miExit;
     @FXML  private MenuItem miAbout;
     
-    @FXML  private Button btnOptimizer;
+    @FXML  private Button btnAnalyzer;
 
     @FXML  private TreeTableView<SourceLine> SourceTree;
     @FXML  private TreeTableColumn<SourceLine, Integer> colLine;
@@ -245,7 +245,7 @@ extends WindowFX
     
     /**
      * Fills the two reference rows with jump buttons, one per source line.
-     * Also called from the Optimizer window when a name in a report is clicked.
+     * Also called from the Analyzer window when a name in a report is clicked.
      *
      * @param references source lines to build the buttons for
      */
@@ -324,9 +324,9 @@ extends WindowFX
     protected void handleAction(ActionEvent ev) throws IOException
     {
         if (ev.getSource() == btnClose) close();
-        if (ev.getSource() == btnOptimizer) {
+        if (ev.getSource() == btnAnalyzer) {
             if (dataModel.mainSource.hasSourceCode()) {
-                OptimizerController ctrl = OptimizerController.open();
+                AnalyzerController ctrl = AnalyzerController.open();
                 ctrl.setSource(dataModel.mainSource);
                 ctrl.setMainWindow(this);
                 ctrl.show(stage);

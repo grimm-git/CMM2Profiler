@@ -19,13 +19,13 @@ package CMM2Profiler.gui;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import CMM2Profiler.Optimizer.Report;
-import CMM2Profiler.Optimizer.ReportIncrement;
-import CMM2Profiler.Optimizer.ReportVariables;
-import CMM2Profiler.Optimizer.Reports;
+import CMM2Profiler.Analyzer.Report;
+import CMM2Profiler.Analyzer.ReportIncrement;
+import CMM2Profiler.Analyzer.ReportVariables;
+import CMM2Profiler.Analyzer.Reports;
 import CMM2Profiler.core.Source;
 
-public class OptimizerData
+public class AnalyzerData
 {
     private final ObservableList<String> ReportList =  FXCollections.observableArrayList();
     protected Source mainSource = new Source();   // copy from main class
@@ -37,7 +37,7 @@ public class OptimizerData
         curReport=rep;
     }
 
-    public OptimizerData()
+    public AnalyzerData()
     {
         for (Reports item : Reports.values())
             ReportList.add(item.toString());
@@ -45,19 +45,19 @@ public class OptimizerData
 
     public ObservableList<String> getReportList() { return ReportList; }
     
-    public ReportVariables getReportVars()
+    public ReportVariables getReportVars() throws IllegalArgumentException
     {
         if (curReport instanceof ReportVariables)
             return (ReportVariables) curReport;
 
-        return null;
+        throw new IllegalArgumentException("Not of type ReportVariables");
     }
     
-    public ReportIncrement getReportInc()
+    public ReportIncrement getReportInc() throws IllegalArgumentException
     {
         if (curReport instanceof ReportIncrement)
             return (ReportIncrement) curReport;
 
-        return null;
+        throw new IllegalArgumentException("Not of type ReportIncrement");
     }
 }

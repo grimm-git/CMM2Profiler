@@ -47,8 +47,8 @@ distributions {
     main {
         distributionBaseName = 'CMM2Profiler'
         contents {
-            into('optimizer') {
-                from 'optimizer'
+            into('reports') {
+                from 'reports'
             }
         }
     }

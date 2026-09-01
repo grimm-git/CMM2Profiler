@@ -173,11 +173,11 @@
                         <Separator orientation="VERTICAL" />
                         <VBox>
                            <children>
-                              <Button fx:id="btnOptimizer" mnemonicParsing="false" onAction="#handleAction" onKeyPressed="#handleKeys" text="Optimizer">
+                              <Button fx:id="btnAnalyzer" mnemonicParsing="false" onAction="#handleAction" onKeyPressed="#handleKeys" text="Analyzer">
                                  <graphic>
                                     <ImageView pickOnBounds="true" preserveRatio="true">
                                        <image>
-                                          <Image url="@../images/cmm2profiler_16x16.png" />
+                                          <Image url="@../images/16_analyze.png" />
                                        </image>
                                     </ImageView>
                                  </graphic>

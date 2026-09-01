@@ -19,8 +19,8 @@ package CMM2Profiler.utils;
 import java.io.IOException;
 import javafx.concurrent.WorkerStateEvent;
 import javafx.event.EventHandler;
-import CMM2Profiler.Optimizer.Report;
-import CMM2Profiler.Optimizer.Reports;
+import CMM2Profiler.Analyzer.Report;
+import CMM2Profiler.Analyzer.Reports;
 import CMM2Profiler.core.Source;
 
 /**

@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package CMM2Profiler.Optimizer;
+package CMM2Profiler.Analyzer;
 
 import CMM2Profiler.core.SourceLine;
 import java.util.ArrayList;
@@ -99,7 +99,7 @@ public class Variable
 
     /**
      * Sorts the most often used name to the top. This is the interesting order
-     * for the optimizer, as a long name that is used often costs the most time.
+     * for the analyzer, as a long name that is used often costs the most time.
      */
     public final static Comparator<Variable> CompCount = (Variable o1, Variable o2) -> {
         int diff = Integer.compare(o2.getCount(), o1.getCount());
