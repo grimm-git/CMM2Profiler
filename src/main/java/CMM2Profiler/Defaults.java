@@ -36,8 +36,8 @@ public final class Defaults
      * be shown in the About window. It is for information only.
      */
     public static final int       APP_VERSION = 0;
-    public static final int       APP_REVISION = 6;
-    public static final String    APP_SUFFIX = "-unstable";
+    public static final int       APP_REVISION = 7;
+    public static final String    APP_SUFFIX = "";
     public static final LocalDate APP_DATE = LocalDate.of(2026, 9, 1);
    
     public static String getVersionString()
